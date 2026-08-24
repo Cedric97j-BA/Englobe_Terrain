@@ -1,0 +1,25 @@
+template_f1.pdf (Pré-coulée)
+
+template_f2.pdf (Suivi de coulée - 17 camions max)
+
+template_f3.pdf (Échantillons)
+
+template_temoin.pdf (Témoin indépendant)
+
+////// Suite 
+
+For Form 2 (The 17 Trucks):
+Add the row number in the middle of the name:
+
+    Ligne 1: truck-1-id, truck-1-bordereau, truck-1-volume, truck-1-slump1-sp...
+
+    Ligne 2: truck-2-id, truck-2-bordereau, truck-2-volume, truck-2-slump1-sp...
+
+    (Continue this pattern all the way down to truck 17)
+
+For Form 3 (The Samples):
+Apply the same logic for your sample cards:
+
+    Échantillon 1: sample-1-moule-cpv, sample-1-prelev-time, sample-1-obs-recup-finition...
+
+    Échantillon 2: sample-2-moule-cpv, sample-2-prelev-time, sample-2-obs-recup-finition...

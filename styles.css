@@ -1,0 +1,417 @@
+/* ========================================= */
+/* VARIABLES ET RÉINITIALISATION GLOBALE     */
+/* ========================================= */
+:root {
+    --primary: #0284c7;      
+    --primary-hover: #0369a1;
+    --success: #16a34a;      
+    --success-bg: #f0fdf4;
+    --warning: #b45309;      
+    --danger: #dc2626;       
+    --danger-bg: #fef2f2;
+    --temoin: #8b5cf6;       
+    --temoin-bg: #faf5ff;
+    --bg-page: #f1f5f9;      
+    --bg-card: #ffffff;
+    --border: #cbd5e1;
+    --text-main: #334155;
+    --text-muted: #64748b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    padding: 20px;
+    font-size: 16px; 
+}
+
+#app-container {
+    max-width: 1200px; 
+    margin: 0 auto;
+    background: transparent;
+}
+
+/* ========================================= */
+/* TYPOGRAPHIE ET EN-TÊTES                   */
+/* ========================================= */
+h2 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 5px;
+}
+
+h3 {
+    color: var(--text-main);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    background-color: #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+h4 {
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+/* ========================================= */
+/* BARRE DE NAVIGATION (ONGLETS)             */
+/* ========================================= */
+#form-navigation {
+    display: flex;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1e293b;
+    background-color: #cbd5e1; 
+    border: 2px solid #94a3b8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active, .tab-btn:hover {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ========================================= */
+/* SECTIONS ET CARTES (FORMULAIRES)          */
+/* ========================================= */
+.tab-section {
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+/* ========================================= */
+/* GRILLES ET ALIGNEMENTS                    */
+/* ========================================= */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* ========================================= */
+/* INPUTS ET CONTRÔLES                       */
+/* ========================================= */
+.input-group {
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    text-align: left;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    width: 100%;
+    height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: white;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    min-width: 0; 
+    max-width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    height: auto; 
+}
+
+/* ========================================= */
+/* CASES À COCHER (CHECKBOXES)               */
+/* ========================================= */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    width: 22px !important;
+    height: 22px !important;
+    flex-shrink: 0 !important; 
+    cursor: pointer;
+    accent-color: var(--primary);
+    margin: 0;
+}
+
+/* ========================================= */
+/* STYLES SPÉCIFIQUES DES CARTES             */
+/* ========================================= */
+.truck-card {
+    border: 2px solid var(--primary);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f0f9ff;
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.truck-card .input-group {
+    margin-bottom: 0; 
+}
+
+.sample-card {
+    border: 2px solid var(--success);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background: var(--success-bg);
+}
+.sample-card h3 {
+    background-color: #dcfce7;
+    color: var(--success);
+}
+
+.temoin-only-card {
+    border: 2px solid var(--temoin);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background: var(--temoin-bg);
+}
+.temoin-only-card h3,
+.temoin-only-card h4 {
+    background-color: #f3e8ff;
+    color: var(--temoin);
+}
+
+/* ========================================= */
+/* BOUTONS D'ACTION                          */
+/* ========================================= */
+button[onclick^="add"] {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.1s, filter 0.2s;
+}
+button[onclick^="add"]:active {
+    transform: scale(0.98);
+}
+button[onclick^="add"]:hover {
+    filter: brightness(110%);
+}
+
+/* ========================================= */
+/* RESPONSIVITÉ MOBILE (CORRECTIFS iPHONE/iPAD)*/
+/* ========================================= */
+@media (max-width: 820px) {
+    
+    /* 1. PROTECTION ABSOLUE DU JAVASCRIPT */
+    .temoin-container[style*="display: none"],
+    .temoin-container[style*="display:none"],
+    *[style*="display: none"], 
+    *[style*="display:none"] {
+        display: none !important;
+    }
+
+    /* 2. ESPACE GLOBAL */
+    body, #app-container {
+        padding: 4px !important; 
+        overflow-x: hidden !important; 
+    }
+    .tab-section {
+        padding: 15px 10px !important; 
+    }
+
+    /* 3. EN-TÊTE ET NAVIGATION */
+    header, .bg-primary {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        height: auto !important;
+        padding: 15px 10px !important;
+    }
+    #main-logo {
+        margin: 0 auto 10px auto !important;
+        max-width: 90% !important;
+    }
+    #form-navigation {
+        flex-direction: column !important; 
+    }
+    .tab-btn {
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* 4. TRUCK CARDS : ALIGNEMENT PAR LE BAS DE TOUTES LES LIGNES */
+    .truck-card > div {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-end !important; 
+        gap: 6px !important;
+        width: 100% !important;
+        margin-bottom: 10px !important;
+        flex-wrap: nowrap !important;
+    }
+    .truck-card .input-group {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .truck-card .input-group:has(.truck-remarques-select) {
+        flex: 1 1 100% !important;
+        margin-top: 8px !important;
+    }
+    .truck-card .input-group label {
+        font-size: 0.8rem !important;
+        line-height: 1.15 !important;
+        margin-bottom: 4px !important;
+    }
+    .truck-card > div:has(input[type="checkbox"]) {
+        align-items: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* 4.1. ALIGNEMENT DES INPUTS D'ÉCHANTILLON DANS LA CARTE CAMION */
+    .truck-sample-fields > div {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-end !important;
+        gap: 10px !important;
+    }
+    .truck-sample-fields > div > div {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+    }
+    .truck-sample-fields label {
+        font-size: 0.8rem !important;
+        line-height: 1.15 !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* 5. FORM 3 : CONDITIONS INITIALES ET SOUS-SECTIONS */
+    .sample-card .form-section div[style*="grid-template-columns: 1fr 1fr"],
+    .temoin-only-card div[style*="grid-template-columns: 1fr 1fr"] {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    .grid-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+
+    /* 6. NETTOYAGE DES INPUTS TEMPS/DATE APPLE */
+    input[type="date"], input[type="time"] {
+        -webkit-appearance: none !important; 
+        min-width: 0 !important;
+    }
+    input[type="time"]::-webkit-clear-button,
+    input[type="time"]::-webkit-inner-spin-button,
+    input[type="date"]::-webkit-clear-button,
+    input[type="date"]::-webkit-inner-spin-button {
+        display: none !important;
+    }
+}
+
+/* ========================================== */
+/* STYLES DU DASHBOARD (HUB PRINCIPAL)        */
+/* ========================================== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 10px 0;
+}
+.app-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: center;
+    text-decoration: none;
+    color: #334155;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 2px solid transparent;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+.app-card:active, .app-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    border-color: #97c6b9; 
+}
+.app-icon-img { 
+    width: 65px; 
+    height: 65px; 
+    object-fit: contain; 
+}
+.app-title { font-size: 1.2rem; font-weight: bold; margin: 0; }
+.app-desc { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+.new-app-card {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    box-shadow: none;
+}
+.new-app-card:hover, .new-app-card:active {
+    border-color: #97c6b9;
+    background: #f0fdfa;
+}

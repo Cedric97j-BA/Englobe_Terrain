@@ -64,7 +64,7 @@
 </button>
 
 <div>
-    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4b</span>
+    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4c</span>
 </div>
 
 <script>
@@ -75,16 +75,17 @@
     }
 
     function forceAppUpdate() {
-    // Vérification réseau basique
+    // 1. Vérification réseau
     if (!navigator.onLine) {
         alert("Vous devez être connecté à Internet (Wi-Fi ou LTE) pour mettre à jour l'application.");
         return;
     }
 
-    const confirmUpdate = confirm("Voulez-vous forcer la mise à jour ? L'application va se recharger.");
+    // 2. Avertissement clair pour l'utilisateur
+    const confirmUpdate = confirm("Mise à jour complète : L'application va vider sa mémoire et télécharger la dernière version.\n\nIMPORTANT : Après avoir cliqué sur OK, laissez l'application ouverte et connectée au Wi-Fi pendant environ 15 secondes.");
     
     if (confirmUpdate) {
-        // 1. Vider le cache de stockage (où se trouvent vos fichiers HTML/CSS/JS)
+        // 3. Suppression des anciens caches
         if ('caches' in window) {
             caches.keys().then((names) => {
                 for (const name of names) {
@@ -93,7 +94,7 @@
             });
         }
 
-        // 2. Désinscrire le Service Worker actuel
+        // 4. Désinscription du Service Worker
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then((registrations) => {
                 for (const registration of registrations) {
@@ -102,12 +103,13 @@
             });
         }
 
-        // 3. Forcer un rafraîchissement complet de la page après un court délai
+        // 5. Délai court avant le rafraîchissement
         setTimeout(() => {
+            alert("Nettoyage terminé. La page va se recharger pour télécharger les nouveaux fichiers.\n\nN'oubliez pas d'attendre 15 secondes AVANT de couper le réseau.");
             window.location.reload();
-        }, 800);
+        }, 1000);
     }
-    }
+}
 </script>
 
 </body>

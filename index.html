@@ -59,8 +59,12 @@
     </div>
 </div>
 
+<button onclick="forceAppUpdate()" style="background: #0f172a; color: white; padding: 10px 20px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; display: block; margin: 20px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    Mettre à jour l'application
+</button>
+
 <div>
-    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4a</span>
+    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4b</span>
 </div>
 
 <script>
@@ -68,6 +72,41 @@
         window.addEventListener('load', () => {
             navigator.serviceWorker.register('./sw.js');
         });
+    }
+
+    function forceAppUpdate() {
+    // Vérification réseau basique
+    if (!navigator.onLine) {
+        alert("Vous devez être connecté à Internet (Wi-Fi ou LTE) pour mettre à jour l'application.");
+        return;
+    }
+
+    const confirmUpdate = confirm("Voulez-vous forcer la mise à jour ? L'application va se recharger.");
+    
+    if (confirmUpdate) {
+        // 1. Vider le cache de stockage (où se trouvent vos fichiers HTML/CSS/JS)
+        if ('caches' in window) {
+            caches.keys().then((names) => {
+                for (const name of names) {
+                    caches.delete(name);
+                }
+            });
+        }
+
+        // 2. Désinscrire le Service Worker actuel
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then((registrations) => {
+                for (const registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+
+        // 3. Forcer un rafraîchissement complet de la page après un court délai
+        setTimeout(() => {
+            window.location.reload();
+        }, 800);
+    }
     }
 </script>
 

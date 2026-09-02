@@ -64,9 +64,9 @@
 </button>
 
 <div>
-    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4f</span>
+    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4g</span>
 </div>
-
+ 
 <script>
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -75,48 +75,48 @@
     }
 
     // 1. VÉRIFICATION AU CHARGEMENT DE LA PAGE
-    if (sessionStorage.getItem('isUpdating') === 'true') {
-        const loader = document.createElement('div');
-        loader.id = 'update-loader';
-        
-        // Ajout d'une balise <style> pour faire tourner l'icône
-        loader.innerHTML = `
-            <style>
-                @keyframes spin { 100% { transform: rotate(360deg); } }
-                .spinner-icon { display: inline-block; animation: spin 1.5s linear infinite; font-size: 3rem; margin-bottom: 15px; }
-            </style>
-            <div style="color:white; text-align:center; font-family:sans-serif;">
-                <span class="spinner-icon">⏳</span>
-                <h2>Téléchargement des fichiers...</h2>
-                <p style="font-size:1rem; color:#cbd5e1;">Ne coupez pas le réseau.</p>
-            </div>
-        `;
-        loader.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.95); display:flex; justify-content:center; align-items:center; z-index:9999;';
-        document.body.appendChild(loader);
+if (sessionStorage.getItem('isUpdating') === 'true') {
+    const loader = document.createElement('div');
+    loader.id = 'update-loader';
+    
+    loader.innerHTML = `
+        <style>
+            @keyframes spin { 100% { transform: rotate(360deg); } }
+            .spinner-icon { display: inline-block; animation: spin 1.5s linear infinite; font-size: 3rem; margin-bottom: 15px; }
+        </style>
+        <div style="color:white; text-align:center; font-family:sans-serif;">
+            <span class="spinner-icon">⏳</span>
+            <h2>Téléchargement des fichiers...</h2>
+            <p style="font-size:1rem; color:#cbd5e1;">Finalisation en cours (environ 15s).<br>Ne coupez pas le réseau.</p>
+        </div>
+    `;
+    loader.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.95); display:flex; justify-content:center; align-items:center; z-index:9999;';
+    document.body.appendChild(loader);
 
-        const finishUpdate = (message) => {
-            const loaderEl = document.getElementById('update-loader');
-            if (loaderEl) loaderEl.remove();
-            sessionStorage.removeItem('isUpdating');
-            if (message) alert(message);
-        };
+    const finishUpdate = (message) => {
+        const loaderEl = document.getElementById('update-loader');
+        if (loaderEl) loaderEl.remove();
+        sessionStorage.removeItem('isUpdating');
+        if (message) alert(message);
+    };
 
-        // On essaie d'attendre le signal normal du Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.ready.then(() => {
-                setTimeout(() => finishUpdate("Mise à jour terminée avec succès ! Vous pouvez couper le réseau."), 1000);
-            });
-        }
-
-        // FILET DE SÉCURITÉ : Quoi qu'il arrive, on retire l'écran noir après 8 secondes maximum.
-        // (Vos fichiers sont très légers, ils seront téléchargés bien avant ça).
-        setTimeout(() => {
-            if (document.getElementById('update-loader')) {
-                finishUpdate("Mise à jour complétée ! Vous pouvez continuer.");
-            }
-        }, 8000);
+    if ('serviceWorker' in navigator) {
+        // Wait for the standard signal that the Service Worker is active
+        navigator.serviceWorker.ready.then(() => {
+            // The standard time has passed. NOW we add the 15 extra seconds to let it breathe.
+            setTimeout(() => {
+                finishUpdate("Mise à jour complétée avec succès ! Vous pouvez maintenant couper le réseau.");
+            }, 15000);
+        });
     }
 
+    // Absolute maximum fallback in case the browser's "ready" signal hangs
+    setTimeout(() => {
+        if (document.getElementById('update-loader')) {
+            finishUpdate("Mise à jour complétée ! Vous pouvez continuer.");
+        }
+    }, 25000);
+    }
     // 2. LA FONCTION DU BOUTON
     async function forceAppUpdate() {
         if (!navigator.onLine) {

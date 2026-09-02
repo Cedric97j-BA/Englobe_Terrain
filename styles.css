@@ -237,6 +237,32 @@ input[type="checkbox"] {
     color: var(--temoin);
 }
 
+/* --- ACCORDÉONS --- */
+.accordion-header {
+    background-color: #e0f2fe;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border-bottom: 1px solid #bae6fd;
+}
+.accordion-content {
+    display: none;
+    padding: 15px;
+}
+.accordion-content.active {
+    display: block;
+}
+.chevron {
+    transition: transform 0.3s ease;
+    font-size: 1.2rem;
+    color: #0284c7;
+}
+.chevron.rotated {
+    transform: rotate(180deg);
+}
+
 /* ========================================= */
 /* BOUTONS D'ACTION                          */
 /* ========================================= */

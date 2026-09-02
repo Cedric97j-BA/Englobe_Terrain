@@ -1,11 +1,33 @@
-const CACHE_NAME = 'compactage-v1.0.0.4';
+// Changement du nom pour forcer la mise à jour sur les tablettes
+const CACHE_NAME = 'hub-inspection-v1.0.0.0';
+
 const ASSETS = [
     './',
+    
+    // Pages HTML
     './index.html',
+    './index_beton.html',
+    './index_compaction.html',
+    './index_planche.html',
+    
+    // Styles
     './styles.css',
-    './app.js',
+    
+    // Scripts Logiques
+    './app_beton.js',
+    './app_compaction.js',
+    './app_planche.js',
+    
+    // Base64 des PDF et Polices
     './pdf_templates.js',
+    
+    // Logos et images
     './logo.png',
+    './logo_beton.png',
+    './logo_compaction.png',
+    './logo_planche.png',
+    
+    // Librairies externes
     'https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js',
     'https://unpkg.com/@pdf-lib/fontkit@1.1.1/dist/fontkit.umd.js'
 ];
@@ -13,7 +35,15 @@ const ASSETS = [
 self.addEventListener('install', (event) => {
     event.waitUntil(
         caches.open(CACHE_NAME).then((cache) => {
-            return cache.addAll(ASSETS);
+            // Remplacement de cache.addAll par des ajouts individuels (Promise.all + cache.add).
+            // Si un lien externe bloque, le reste de l'application se téléchargera quand même.
+            return Promise.all(
+                ASSETS.map(asset => {
+                    return cache.add(asset).catch(err => {
+                        console.error('Échec du téléchargement en cache pour :', asset, err);
+                    });
+                })
+            );
         })
     );
     self.skipWaiting();
@@ -34,6 +64,7 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
+// Stratégie "Network First, fallback to cache"
 self.addEventListener('fetch', (event) => {
     event.respondWith(
         fetch(event.request)

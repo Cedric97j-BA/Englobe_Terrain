@@ -64,7 +64,7 @@
 </button>
 
 <div>
-    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4c</span>
+    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.1.0.4d</span>
 </div>
 
 <script>
@@ -74,42 +74,53 @@
         });
     }
 
-    function forceAppUpdate() {
-    // 1. Vérification réseau
-    if (!navigator.onLine) {
-        alert("Vous devez être connecté à Internet (Wi-Fi ou LTE) pour mettre à jour l'application.");
-        return;
+    // 1. VÉRIFICATION AU CHARGEMENT DE LA PAGE
+    // Si la page se recharge suite à une mise à jour, on affiche l'écran de chargement immédiatement
+    if (sessionStorage.getItem('isUpdating') === 'true') {
+        const loader = document.createElement('div');
+        loader.id = 'update-loader';
+        loader.innerHTML = '<h2 style="color:white; text-align:center;">🔄<br><br>Téléchargement des fichiers...<br><br><span style="font-size:1rem;">Ne coupez pas le réseau.</span></h2>';
+        loader.style.cssText = 'position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(15, 23, 42, 0.95); display:flex; justify-content:center; align-items:center; z-index:9999; font-family:sans-serif;';
+        document.body.appendChild(loader);
+
+        // On attend que le nouveau Service Worker ait fini d'installer (télécharger) tous les fichiers
+        navigator.serviceWorker.ready.then(() => {
+            // Une fois le téléchargement terminé, on retire l'écran
+            setTimeout(() => {
+                const loaderEl = document.getElementById('update-loader');
+                if (loaderEl) loaderEl.remove();
+                sessionStorage.removeItem('isUpdating');
+                alert("Mise à jour terminée avec succès ! Vous pouvez couper le réseau.");
+            }, 1500); // Petit délai visuel de 1.5s
+        });
     }
 
-    // 2. Avertissement clair pour l'utilisateur
-    const confirmUpdate = confirm("Mise à jour complète : L'application va vider sa mémoire et télécharger la dernière version.\n\nIMPORTANT : Après avoir cliqué sur OK, laissez l'application ouverte et connectée au Wi-Fi pendant environ 15 secondes.");
-    
-    if (confirmUpdate) {
-        // 3. Suppression des anciens caches
-        if ('caches' in window) {
-            caches.keys().then((names) => {
-                for (const name of names) {
-                    caches.delete(name);
-                }
-            });
+    // 2. LA FONCTION DU BOUTON
+    async function forceAppUpdate() {
+        if (!navigator.onLine) {
+            alert("Vous devez être connecté à Internet (Wi-Fi ou LTE) pour mettre à jour.");
+            return;
         }
 
-        // 4. Désinscription du Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then((registrations) => {
-                for (const registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
+        if (confirm("L'application va télécharger la dernière version. Continuer ?")) {
+            // On active le mode "Mise à jour" pour que l'écran noir apparaisse au rechargement
+            sessionStorage.setItem('isUpdating', 'true');
 
-        // 5. Délai court avant le rafraîchissement
-        setTimeout(() => {
-            alert("Nettoyage terminé. La page va se recharger pour télécharger les nouveaux fichiers.\n\nN'oubliez pas d'attendre 15 secondes AVANT de couper le réseau.");
+            // Nettoyage de l'ancienne mémoire
+            if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+            }
+            if ('serviceWorker' in navigator) {
+                const registrations = await navigator.serviceWorker.getRegistrations();
+                await Promise.all(registrations.map(reg => reg.unregister()));
+            }
+
+            // On recharge la page (ce qui déclenchera l'écran noir grâce au code ci-dessus)
             window.location.reload();
-        }, 1000);
+        }
     }
-}
+
 </script>
 
 </body>

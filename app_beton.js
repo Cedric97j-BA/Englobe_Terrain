@@ -1580,19 +1580,26 @@ async function exportToPDF() {
             // 1. COMPORTEMENT APPLICATION NATIVE (TABLETTE)
             try {
                 const pdfBase64 = await mergedPdf.saveAsBase64(); // pdf-lib convertit ça parfaitement
-                const { Filesystem, Share } = Capacitor.Plugins;
+                const { Filesystem, FileOpener } = window.Capacitor.Plugins;
                 
+                if (!Filesystem || !FileOpener) {
+                    throw new Error("Plugins introuvables. npx cap sync a-t-il été fait ?");
+                }
+                
+                // 1. Sauvegarde silencieuse en cache
                 const resultat = await Filesystem.writeFile({
                     path: fileName,
                     data: pdfBase64,
-                    directory: 'DOCUMENTS',
+                    directory: 'CACHE',
                     recursive: true
                 });
 
-                await Share.share({
-                    title: fileName,
-                    url: resultat.uri,
+                // 2. Ouverture automatique (lancera Foxit directement si défini par défaut)
+                await FileOpener.open({ 
+                    filePath: resultat.uri, 
+                    contentType: 'application/pdf' 
                 });
+
             } catch (err) {
                 console.error("Erreur de sauvegarde native:", err);
                 alert("Erreur lors de l'enregistrement sur la tablette.");

@@ -848,13 +848,24 @@ async function exportToPDF() {
         if (window.Capacitor && window.Capacitor.isNativePlatform()) {
             try {
                 const pdfBase64 = await pdfDoc.saveAsBase64(); // Attention ici : pdfDoc
-                const { Filesystem, Share } = Capacitor.Plugins;
+                const { Filesystem, FileOpener } = window.Capacitor.Plugins;
                 
+                if (!Filesystem || !FileOpener) {
+                    throw new Error("Plugins introuvables. npx cap sync a-t-il été fait ?");
+                }
+                
+                // 1. Sauvegarde silencieuse en cache
                 const resultat = await Filesystem.writeFile({
                     path: fileName,
                     data: pdfBase64,
-                    directory: 'DOCUMENTS',
+                    directory: 'CACHE',
                     recursive: true
+                });
+
+                // 2. Ouverture automatique (lancera Foxit directement si défini par défaut)
+                await FileOpener.open({ 
+                    filePath: resultat.uri, 
+                    contentType: 'application/pdf' 
                 });
 
                 await Share.share({ title: fileName, url: resultat.uri });

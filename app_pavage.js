@@ -531,20 +531,32 @@ async function exportToPDF() {
         // BIFURCATION : APPLICATION ANDROID vs WEB
         if (window.Capacitor && window.Capacitor.isNativePlatform()) {
             try {
-                const pdfBase64 = await pdfDoc.saveAsBase64(); // Attention ici : pdfDoc
-                const { Filesystem, Share } = Capacitor.Plugins;
+                const pdfBase64 = await pdfDoc.saveAsBase64();
+                const { Filesystem, FileOpener } = window.Capacitor.Plugins;
                 
+                if (!Filesystem || !FileOpener) {
+                    throw new Error("Plugins introuvables. npx cap sync a-t-il été fait ?");
+                }
+                
+                // 1. Sauvegarde silencieuse en cache
                 const resultat = await Filesystem.writeFile({
                     path: fileName,
                     data: pdfBase64,
-                    directory: 'DOCUMENTS',
+                    directory: 'CACHE',
                     recursive: true
                 });
 
-                await Share.share({ title: fileName, url: resultat.uri });
+                // 2. Ouverture automatique (lancera Foxit directement si défini par défaut)
+                await FileOpener.open({ 
+                    filePath: resultat.uri, 
+                    contentType: 'application/pdf' 
+                });
+
+
             } catch (err) {
-                console.error(err);
-                alert("Erreur lors de l'enregistrement sur la tablette.");
+                console.error("DEBUG NATIVE:", err);
+                // DEBUG : Affiche l'erreur technique réelle à l'écran
+                alert("ERREUR TECHNIQUE : " + (err.message || JSON.stringify(err)));
             }
         } else {
             // COMPORTEMENT WEB ORIGINAL

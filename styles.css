@@ -41,6 +41,13 @@ body {
 /* ========================================= */
 /* TYPOGRAPHIE ET EN-TÊTES                   */
 /* ========================================= */
+
+/* Empêche les en-têtes principaux de devenir gris/noirs en Mode Nuit */
+body.dark-mode header {
+    background-color: #97c6b9 !important;
+    color: white !important;
+}
+
 h2 {
     color: var(--primary);
     margin-bottom: 15px;
@@ -125,6 +132,10 @@ h4 {
 /* INPUTS ET CONTRÔLES                       */
 /* ========================================= */
 .input-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Force l'input à rester aligné vers le bas */
+    height: 100%; /* Permet d'utiliser tout l'espace disponible de la grille */
     margin-bottom: 15px;
 }
 
@@ -201,12 +212,27 @@ input[type="checkbox"] {
 /* STYLES SPÉCIFIQUES DES CARTES             */
 /* ========================================= */
 .truck-card {
-    border: 2px solid var(--primary);
+    border: 2px solid #94a3b8; /* Gris / Slate 400 */
     border-radius: 8px;
     padding: 15px;
     margin-bottom: 15px;
-    background: #f0f9ff;
+    background: #f8fafc; /* Gris très clair / Slate 50 */
     transition: background-color 0.3s, border-color 0.3s;
+}
+.truck-card.truck-status-refused {
+    border-color: #dc2626 !important;
+    background-color: #fecaca !important;
+}
+.truck-card.truck-status-sampled {
+    border-color: #16a34a !important;
+    background-color: #bbf7d0 !important;
+}
+.truck-card.truck-status-tested {
+    border-color: #0284c7 !important;
+    background-color: #bae6fd !important;
+}
+.truck-card > .accordion-header {
+    background-color: #e2e8f0 !important;
 }
 .truck-card .input-group {
     margin-bottom: 0; 
@@ -260,7 +286,7 @@ input[type="checkbox"] {
     color: #0284c7;
 }
 .chevron.rotated {
-    transform: rotate(180deg);
+    transform: rotate(-90deg);
 }
 
 /* ========================================= */
@@ -324,15 +350,21 @@ button[onclick^="add"]:hover {
     }
 
     /* 4. TRUCK CARDS : ALIGNEMENT PAR LE BAS DE TOUTES LES LIGNES */
-    .truck-card > div {
+    .truck-card > div:not(.accordion-content):not(.accordion-header),
+    .truck-card .accordion-content > div:not(.truck-toggles-container) {
         display: flex !important;
         flex-direction: row !important;
-        align-items: flex-end !important; 
+        align-items: flex-end !important;
         gap: 6px !important;
         width: 100% !important;
         margin-bottom: 10px !important;
         flex-wrap: nowrap !important;
     }
+
+    /* Protection absolue de l'accordéon sur mobile */
+    .accordion-content { display: none !important; }
+    .accordion-content.active { display: block !important; }
+
     .truck-card .input-group {
         flex: 1 1 0% !important;
         min-width: 0 !important;
@@ -347,6 +379,18 @@ button[onclick^="add"]:hover {
         line-height: 1.15 !important;
         margin-bottom: 4px !important;
     }
+    .truck-remarks-controls {
+        flex-wrap: wrap !important;
+    }
+    .truck-remarks-controls .truck-remarques-list {
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+        width: 100% !important;
+    }
+    .truck-remarks-controls button {
+        flex: 1 1 auto !important;
+        min-height: 42px !important;
+    }
     .truck-card > div:has(input[type="checkbox"]) {
         align-items: center !important;
         flex-wrap: wrap !important;
@@ -355,13 +399,13 @@ button[onclick^="add"]:hover {
     /* 4.1. ALIGNEMENT DES INPUTS D'ÉCHANTILLON DANS LA CARTE CAMION */
     .truck-sample-fields > div {
         display: flex !important;
-        flex-direction: row !important;
-        align-items: flex-end !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
         gap: 10px !important;
     }
     .truck-sample-fields > div > div {
-        flex: 1 1 0% !important;
-        min-width: 0 !important;
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
     }
     .truck-sample-fields label {
         font-size: 0.8rem !important;
@@ -370,8 +414,8 @@ button[onclick^="add"]:hover {
     }
 
     /* 5. FORM 3 : CONDITIONS INITIALES ET SOUS-SECTIONS */
-    .sample-card .form-section div[style*="grid-template-columns: 1fr 1fr"],
-    .temoin-only-card div[style*="grid-template-columns: 1fr 1fr"] {
+    .sample-card .form-section div[style*="grid-template-columns: 1fr 1fr"]:not([style*="2fr"]),
+    .temoin-only-card div[style*="grid-template-columns: 1fr 1fr"]:not([style*="2fr"]) {
         display: flex !important;
         flex-direction: column !important;
         gap: 15px !important;
@@ -440,4 +484,192 @@ button[onclick^="add"]:hover {
 .new-app-card:hover, .new-app-card:active {
     border-color: #97c6b9;
     background: #f0fdfa;
+}
+
+/* --- NOTIFICATIONS TOAST --- */
+.toast-notification {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #1e293b; /* Gris très foncé */
+    color: #f8fafc;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 10000;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* Couleurs selon le contexte */
+.toast-success { border-bottom: 4px solid #22c55e; } /* Vert */
+.toast-error { border-bottom: 4px solid #ef4444; } /* Rouge */
+.toast-info { border-bottom: 4px solid #0ea5e9; } /* Bleu */
+
+/* Animation d'apparition et disparition */
+.toast-notification.show {
+    visibility: visible;
+    animation: slideInUp 0.4s ease-out, fadeOut 0.5s ease-in 2.5s;
+}
+
+@keyframes slideInUp {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 40px; opacity: 1; }
+}
+@keyframes fadeOut {
+    from { bottom: 40px; opacity: 1; }
+    to { bottom: 40px; opacity: 0; }
+}
+
+/* --- MODE NUIT (CORRIGÉ) --- */
+body.dark-mode {
+    background-color: #0f172a; 
+    color: #f8fafc;
+}
+
+/* 1. Main containers and cards */
+body.dark-mode #form-navigation,
+body.dark-mode .tab-section,
+body.dark-mode .form-section,
+body.dark-mode .app-card,
+body.dark-mode .new-app-card {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+/* 2. Specific forms (Keeping the color hierarchy but dark) */
+body.dark-mode .truck-card {
+    background-color: #172554; /* Very dark blue */
+    border-color: #1e3a8a;
+}
+body.dark-mode .truck-card.truck-status-refused {
+    border-color: #f87171 !important;
+    background-color: #450a0a !important;
+}
+body.dark-mode .truck-card.truck-status-sampled {
+    border-color: #4ade80 !important;
+    background-color: #052e16 !important;
+}
+body.dark-mode .truck-card.truck-status-tested {
+    border-color: #38bdf8 !important;
+    background-color: #082f49 !important;
+}
+body.dark-mode .truck-card > .accordion-header {
+    background-color: #334155 !important;
+}
+body.dark-mode .home-button {
+    border: 1px solid #94a3b8 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+body.dark-mode .sample-card {
+    background-color: #064e3b; /* Very dark green */
+    border-color: #047857;
+}
+body.dark-mode .temoin-only-card {
+    background-color: #3b0764; /* Very dark purple */
+    border-color: #6b21a8;
+}
+
+/* 3. Headers and Accordions */
+body.dark-mode h2 { border-bottom-color: #38bdf8; color: #38bdf8; }
+body.dark-mode h3 { background-color: #334155; color: #f8fafc; }
+body.dark-mode h4 { color: #f8fafc; }
+body.dark-mode .sample-card h3 { background-color: #047857; color: white; }
+body.dark-mode .temoin-only-card h3, 
+body.dark-mode .temoin-only-card h4 { background-color: #6b21a8; color: white; }
+body.dark-mode .accordion-header { background-color: #1e3a8a; border-bottom-color: #172554; }
+body.dark-mode .truck-header-summary,
+body.dark-mode .form-instructions,
+body.dark-mode .truck-legend,
+body.dark-mode .page-numbering {
+    color: #f8fafc !important;
+}
+body.dark-mode .truck-legend span {
+    color: #7dd3fc !important;
+}
+body.dark-mode .truck-legend span:nth-of-type(2) {
+    color: #86efac !important;
+}
+body.dark-mode .truck-legend span:nth-of-type(3) {
+    color: #fca5a5 !important;
+}
+body.dark-mode #truck-pagination-controls {
+    background-color: #334155 !important;
+}
+body.dark-mode #save-manager button,
+body.dark-mode #truck-pagination-controls button,
+body.dark-mode .collapse-trucks-button {
+    border: 1px solid #94a3b8 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* 4. Navigation Tabs */
+body.dark-mode .tab-btn { background-color: #334155; color: #cbd5e1; border-color: #475569; }
+body.dark-mode .tab-btn.active, 
+body.dark-mode .tab-btn:hover { background-color: #0284c7; color: white; border-color: #0284c7; }
+
+/* 5. Inputs and Textareas */
+body.dark-mode input, 
+body.dark-mode select, 
+body.dark-mode textarea {
+    background-color: #0f172a;
+    color: #ffffff;
+    border-color: #475569;
+}
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* 6. Text and Labels */
+body.dark-mode label, 
+body.dark-mode .app-desc, 
+body.dark-mode .accordion-header {
+    color: #cbd5e1;
+}
+body.dark-mode #save-manager label,
+body.dark-mode #last-saved-status {
+    color: #e2e8f0 !important;
+}
+body.dark-mode .app-title,
+body.dark-mode .chevron {
+    color: #f8fafc;
+}
+
+/* 7. Forcer l'écrasement des couleurs écrites directement dans le HTML (SAUF LE HEADER) */
+body.dark-mode [style*="background"]:not(header):not(header *) {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+/* Force le header à rester vert (Sécurité maximale avec sélecteur fort) */
+body.dark-mode header,
+body.dark-mode header[style] {
+    background: #97c6b9 !important;
+    color: white !important;
+}
+
+/* Le bouton "Accueil" des formulaires doit rester bleu nuit */
+body.dark-mode header a.home-button {
+    background: #1e293b !important;
+    color: white !important;
+}
+
+/* La petite bulle "Accueil" sur le hub doit garder son vert d'origine */
+body.dark-mode header span[style] {
+    background: #73968c !important;
+    color: white !important;
+}
+
+/* Inversion du logo (sombre vers blanc) */
+body.dark-mode header img {
+    filter: invert(1);
+    mix-blend-mode: screen;
 }

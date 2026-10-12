@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique des mises à jour - Hub Inspection</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .changelog-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .version-title {
+            border-bottom: 1px solid #94a3b8;
+            padding-bottom: 5px;
+            margin-top: 40px;
+            color: #0f172a;
+        }
+        body.dark-mode .version-title {
+            color: #f1f5f9;
+            border-bottom: 1px solid #475569;
+        }
+        .changelog-list li {
+            margin-bottom: 10px;
+        }
+        .tag-nouveau { color: #16a34a; font-weight: bold; }
+        .tag-correction { color: #ea580c; font-weight: bold; }
+        .tag-amelioration { color: #2563eb; font-weight: bold; }
+        
+        body.dark-mode .tag-nouveau { color: #4ade80; }
+        body.dark-mode .tag-correction { color: #fb923c; }
+        body.dark-mode .tag-amelioration { color: #60a5fa; }
+    </style>
+</head>
+<body>
+    <div class="changelog-container">
+        
+        <a class="home-button" href="index.html" style="text-align: center; margin-left: auto; background: #1e293b; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            🏠 Accueil
+        </a>
+        
+        <h1 style="margin-bottom: 10px;">Historique des mises à jour</h1>
+
+        <!-- v1.3.0.0 -->
+        <h2 class="version-title">v1.3.0.0 — Lancement du journal de chantier (Standard) et du journal photo</h2>
+        <ul class="changelog-list">
+            <li><span class="tag-nouveau">Nouveau :</span> Ajout de l'application "Journal photo" pour la documentation photographique isolée.</li>
+            <li><span class="tag-nouveau">Nouveau :</span> Ajout de l'application "Journal de chantier (Ancien)" pour assurer la rétrocompatibilité avec le format de rapport EQ-09-IM-143.</li>
+            <li><span class="tag-amelioration">Amélioration :</span> Le système de sauvegarde mémorise désormais les noms personnalisés lors des modifications et duplique intelligemment les rapports avec le suffixe "_copie".</li>                                                                         
+        </ul>
+        
+        <!-- v1.2.0.0 -->
+        <h2 class="version-title">v1.2.0.0 — Lancement du nouveau journal de Chantier et Corrections Visuelles</h2>
+        <ul class="changelog-list">
+            <li><span class="tag-nouveau">Nouveau :</span> Ajout de l’application : "Journal de Chantier" permettant la saisie des tâches, des heures et l'intégration directe de photos de chantier dans les rapports PDF.</li>
+            <li><span class="tag-correction">Correction (Mode Nuit) :</span> Les couleurs d'état des camions dans l'application Béton (échantillonné en vert, refusé en rouge, testé en bleu) s'affichent désormais correctement lorsque le mode nuit est activé.</li>
+            <li><span class="tag-correction">Correction (Mode Nuit) :</span> Les bordures des boutons d'action sont maintenant bien visibles sur fond sombre pour faciliter la navigation.</li>
+            <li><span class="tag-correction">Correction (Interface) :</span> Les horloges de sélection d'heure sur iPad ont retrouvé une taille normale et ne chevauchent plus l'écran. L'alignement des mémos sur les téléphones a également été ajusté.</li>
+            <li><span class="tag-amelioration">Amélioration :</span> Le bouton de mise à jour de l'application est plus intelligent : il ne fige plus l'écran et vous avertit clairement si vous possédez déjà la dernière version.</li>
+        </ul>
+                                                                    
+        <!-- v1.1.0.7e -->
+        <h2 class="version-title">v1.1.0.7e — Mode Nuit</h2>
+        <ul class="changelog-list">
+            <li><span class="tag-nouveau">Nouveau :</span> Introduction du "Mode Nuit" global pour réduire la fatigue visuelle lors des travaux en soirée ou tôt le matin.</li>
+            <li><span class="tag-amelioration">Amélioration :</span> Le module "Planche de Référence" intègre désormais directement le graphique des résultats dans le fichier PDF final.</li>
+        </ul>
+        
+        <!-- v1.1.0.0 -->
+        <h2 class="version-title">v1.1.0.0 — Nouveaux Outils et Autonomie Hors-Ligne</h2>
+        <ul class="changelog-list">
+            <li><span class="tag-nouveau">Nouveau :</span> Ajout des applications : "Échantillonnage Sols et Granulats" et "Rapport de compactage".</li>
+            <li><span class="tag-amelioration">Amélioration :</span> Renforcement du mode hors-ligne. Les formulaires et les modèles PDF se chargent désormais instantanément même lors d'une perte totale de réseau cellulaire (ex: dans les tranchées ou régions éloignées).</li>
+            <li><span class="tag-correction">Correction :</span> Amélioration de la sauvegarde automatique locale pour éviter la perte de données en cas de fermeture accidentelle de la page.</li>
+        </ul>
+        
+        <!-- v1.0.0.0 -->
+        <h2 class="version-title">v1.0.0.0 — Lancement Initial</h2>
+        <ul class="changelog-list">
+            <li><span class="tag-nouveau">Nouveau :</span> Lancement du "Portail des formulaires de chantier", un portail unique regroupant toutes les applications : "Rapport de béton" et "Planche de référence".</li>
+            <li><span class="tag-nouveau">Nouveau :</span> Déploiement des deux premières applications de terrain.</li>
+            <li><span class="tag-nouveau">Nouveau :</span> Saisie numérique complète remplaçant les formulaires papier.</li>
+            <li><span class="tag-nouveau">Nouveau :</span> Système de génération instantanée des rapports de chantiers PDF.</li>
+        </ul>
+        
+    </div>
+
+    <!-- Activation du Mode Nuit -->
+    <script>
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.body.classList.add('dark-mode');
+        }
+    </script>
+</body>
+</html>

@@ -1,19 +1,56 @@
-const APP_VERSION = 'v1.0.0.4';
-
 // ========================================== //
 // 1. NAVIGATION ET INITIALISATION            //
 // ========================================== //
 
 
 document.addEventListener('DOMContentLoaded', () => {
-    const versionEl = document.getElementById('app-version');
-    if (versionEl) versionEl.textContent = APP_VERSION;
-
     if (document.getElementById('essais-container').children.length === 0) {
         addEssai();
     }
+
+    if (localStorage.getItem('darkMode') === 'enabled') {
+        document.body.classList.add('dark-mode');
+    }
     updateDropdown();
 });
+
+// 2. La fonction reliée au bouton
+function toggleDarkMode() {
+    // Ajoute ou retire la classe "dark-mode" sur le corps de la page
+    document.body.classList.toggle('dark-mode');
+    
+    // Vérifie si le mode est activé ou non
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    // Sauvegarde le choix dans la tablette
+    localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+    
+    // Si vous avez gardé la fonction Toast, on peut l'utiliser !
+    if (typeof showToast === "function") {
+        showToast(isDark ? "Mode Nuit activé" : "Mode Jour activé", "info");
+    }
+}
+
+// Fonction globale pour afficher un Toast
+function showToast(message, type = 'success') {
+    // 1. Création de l'élément
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type} show`;
+    toast.innerText = message;
+    
+    // 2. Ajout à la page
+    document.body.appendChild(toast);
+    
+    // 3. Destruction après 3 secondes (2.5s d'affichage + 0.5s d'animation de sortie)
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                toast.remove();
+            }
+        }, 500);
+    }, 3000);
+}
 
 function showTab(tabId) {
     document.querySelectorAll('.tab-section').forEach(tab => tab.style.display = 'none');
@@ -166,6 +203,16 @@ function calculateCompacite() {
 
 let currentActiveReportKey = null;
 
+function updateLastSavedStatus(timestamp = Date.now()) {
+    const status = document.getElementById('last-saved-status');
+    if (status) {
+        const date = new Date(timestamp);
+        const dateText = date.toLocaleDateString('fr-CA');
+        const timeText = date.toLocaleTimeString('fr-CA', { hour: '2-digit', minute: '2-digit', hour12: false }).replace(':', 'H');
+        status.textContent = `Dernière sauvegarde : ${dateText} - ${timeText}`;
+    }
+}
+/*
 function updateDropdown() {
     const dropdown = document.getElementById('saved-reports-dropdown');
     if (!dropdown) return;
@@ -183,6 +230,56 @@ function updateDropdown() {
         dropdown.appendChild(option);
     });
     if (currentActiveReportKey) dropdown.value = currentActiveReportKey;
+} */
+
+function updateDropdown() {
+    const dropdown = document.getElementById('saved-reports-dropdown');
+    if (!dropdown) return;
+    
+    dropdown.innerHTML = '<option value="">-- Sélectionnez un rapport --</option>';
+    
+    let savedReports = [];
+    
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        try {
+            // 1. Anciens rapports (Sauvegardés sans ID)
+            if (key && key.startsWith('compactage_')) {
+                const displayName = key.replace('compactage_', '').replace(/_/g, ' ');
+                savedReports.push({ key: key, display: displayName });
+            } 
+            // 2. Nouveaux rapports (Sauvegardés avec ID unique)
+            else if (key && key.startsWith('ID_')) {
+                const dataStr = localStorage.getItem(key);
+                if (dataStr && dataStr.includes('{')) {
+                    const data = JSON.parse(dataStr);
+                    if (data && data.displayName && data.displayName.startsWith('compactage_')) {
+                        const displayName = data.displayName.replace('compactage_', '').replace(/_/g, ' ');
+                        savedReports.push({ key: key, display: displayName });
+                    }
+                }
+            }
+        } catch (e) {
+            // Ignorer les fichiers corrompus dans le localStorage
+        }
+    }
+
+    // Tri alphabétique basé sur le nom d'affichage
+    savedReports.sort((a, b) => a.display.localeCompare(b.display));
+
+    // Création des options dans le menu déroulant
+    savedReports.forEach(report => {
+        const option = document.createElement('option');
+        option.value = report.key; // La vraie clé système (compactage_... ou ID_...)
+        option.textContent = report.display; // Le nom propre et formaté
+        dropdown.appendChild(option);
+    });
+
+    // Garder le rapport actuel sélectionné dans la liste
+    if (currentActiveReportKey) {
+        dropdown.value = currentActiveReportKey;
+    }
 }
 
 function clearForm() {
@@ -212,10 +309,21 @@ function newReportPrompt() {
 
 function loadReport() {
     const selectedKey = document.getElementById('saved-reports-dropdown').value;
-    if (!selectedKey) return alert("Sélectionnez un rapport d'abord.");
+    if (!selectedKey) return showToast("Sélectionnez un rapport d'abord.", "info");
 
-    const reportData = JSON.parse(localStorage.getItem(selectedKey));
-    if (!reportData) return;
+    let reportData;
+    try {
+        reportData = JSON.parse(localStorage.getItem(selectedKey));
+    } catch (error) {
+        console.error("Rapport de compactage invalide", error);
+        showToast("Ce rapport est invalide ou provient d'une ancienne version.", "error");
+        return;
+    }
+    if (!reportData || typeof reportData !== 'object' || !reportData.static) {
+        showToast("Ce rapport est invalide ou provient d'une ancienne version.", "error");
+        return;
+    }
+    updateLastSavedStatus(reportData.timestamp);
 
     clearForm();
 
@@ -223,8 +331,12 @@ function loadReport() {
         for (const [id, value] of Object.entries(reportData.static)) {
             const el = document.getElementById(id);
             if (el) {
-                if (el.type === 'checkbox') el.checked = value;
-                else el.value = value;
+                if (el.type === 'checkbox') {
+                    el.checked = value;
+                    el.dispatchEvent(new Event('change'));
+                } else {
+                    el.value = value;
+                }
             }
         }
     }
@@ -252,24 +364,31 @@ function loadReport() {
     calculateCompacite();
     currentActiveReportKey = selectedKey; 
     document.getElementById('saved-reports-dropdown').value = selectedKey;
-    alert("Rapport chargé avec succès.");
+    showToast("Rapport chargé avec succès.", "success");
 }
 
-function saveReport() {
+function saveReport(isDuplicate = false) {
+    let saveKey = currentActiveReportKey;
+
+    // 1. On recalcule TOUJOURS le nom de base avec les champs actuels
     const noProjet = document.getElementById('global-no-projet').value.trim() || 'SANS-NUMERO';
     const rawDate = document.getElementById('global-date').value || new Date().toISOString().split('T')[0];
     const techName = document.getElementById('sig-englobe-nom')?.value || '';
     const techInitials = techName.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
     
-    const defaultBaseName = `compactage_${rawDate}_${noProjet}_${techInitials}`;
-    let userPromptName = prompt("Nom de sauvegarde du rapport :", defaultBaseName);
-    if (!userPromptName) return; 
-    
-    let baseName = userPromptName.trim() || defaultBaseName;
-    if (!baseName.startsWith('compactage_')) baseName = `compactage_${baseName}`;
+    let baseName = `compactage_${rawDate}_${noProjet}_${techInitials}`;
 
-    if (currentActiveReportKey && !currentActiveReportKey.startsWith(baseName)) {
-        currentActiveReportKey = null;
+    // 2. Demande un nom SEULEMENT si c'est un nouveau rapport ou une copie
+    if (!saveKey || isDuplicate) {
+        const promptMsg = isDuplicate ? "Nom pour la COPIE du rapport :" : "Nom de sauvegarde du rapport :";
+        let userPromptName = prompt(promptMsg, baseName);
+        if (!userPromptName) return; 
+        
+        baseName = userPromptName.trim() || baseName;
+        if (!baseName.startsWith('compactage_')) baseName = `compactage_${baseName}`;
+
+        // Création de l'identifiant unique invisible
+        saveKey = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
 
     const staticData = {};
@@ -292,22 +411,8 @@ function saveReport() {
         });
     });
 
-    let saveKey = currentActiveReportKey;
-    if (!saveKey || saveKey !== baseName) {
-        let maxIndex = 0;
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && key.startsWith(baseName)) {
-                const parts = key.split('_');
-                const idx = parseInt(parts[parts.length - 1]);
-                if (!isNaN(idx) && idx > maxIndex) maxIndex = idx;
-            }
-        }
-        const nextIndex = String(maxIndex + 1).padStart(2, '0');
-        saveKey = `${baseName}_${nextIndex}`;
-    }
-
     const reportData = {
+        displayName: baseName, // <-- Le nom que le technicien voit
         static: staticData,
         essais: essaisData,
         timestamp: new Date().getTime()
@@ -315,21 +420,26 @@ function saveReport() {
 
     localStorage.setItem(saveKey, JSON.stringify(reportData));
     currentActiveReportKey = saveKey; 
+    updateLastSavedStatus(reportData.timestamp);
+    
     updateDropdown();
-    document.getElementById('saved-reports-dropdown').value = saveKey;
-    alert("Sauvegardé sous : " + saveKey);
+    
+    const dropdown = document.getElementById('saved-reports-dropdown');
+    if (dropdown) dropdown.value = saveKey;
+    
+    showToast(isDuplicate ? "Copie sauvegardée avec succès." : "Rapport sauvegardé avec succès.", "success");
 }
 
 function deleteReport() {
     const targetKey = currentActiveReportKey || document.getElementById('saved-reports-dropdown').value;
-    if (!targetKey) return alert("Sélectionnez un rapport.");
+    if (!targetKey) return showToast("Sélectionnez un rapport.", "info");
 
     if (confirm("Supprimer ce rapport définitivement ?")) {
         localStorage.removeItem(targetKey); 
         currentActiveReportKey = null; 
         clearForm(); 
         updateDropdown(); 
-        alert("Supprimé.");
+        showToast("Supprimé.", "success");
     }
 }
 
@@ -450,6 +560,197 @@ async function exportToPDF() {
                 console.warn("Erreur d'apparence PDF", e);
             }
 
+            // FIX: Dynamic Field Renaming
+            form.getFields().forEach(f => { try { f.acroField.setPartialName(f.getName() + '_pg' + p); } catch(e){} });
+
+            const copiedPages = await mergedPdf.copyPages(subDoc, subDoc.getPageIndices());
+            copiedPages.forEach(page => mergedPdf.addPage(page));
+        }
+
+        // Nettoyage et création du nom de fichier final
+        const noProjetVal = document.getElementById('global-no-projet').value.trim() || 'SANS-NUMERO';
+        const rawDateVal = document.getElementById('global-date').value || new Date().toISOString().split('T')[0];
+        const techNameVal = document.getElementById('sig-englobe-nom')?.value || '';
+        const initialsVal = techNameVal.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
+
+        
+        const pdfBytes = await pdfDoc.save();
+        const fileName = `Compactage_${noProjetVal}_${rawDateVal}_${initialsVal}.pdf`;
+
+        // BIFURCATION : APPLICATION ANDROID vs WEB
+        if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+            try {
+                const pdfBase64 = await pdfDoc.saveAsBase64(); // Attention ici : pdfDoc
+                const { Filesystem, Share } = Capacitor.Plugins;
+                
+                const resultat = await Filesystem.writeFile({
+                    path: fileName,
+                    data: pdfBase64,
+                    directory: 'DOCUMENTS',
+                    recursive: true
+                });
+
+                await Share.share({ title: fileName, url: resultat.uri });
+            } catch (err) {
+                console.error(err);
+                alert("Erreur lors de l'enregistrement sur la tablette.");
+            }
+        } else {
+            // COMPORTEMENT WEB ORIGINAL
+            const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+            const isMacTouch = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+            const isApple = /iPhone|iPad|iPod/i.test(navigator.userAgent) || isMacTouch;
+            
+            let attemptedShare = false;
+            try {
+                if (isApple && navigator.share && navigator.canShare) {
+                    const file = new File([blob], fileName, { type: 'application/pdf' });
+                    if (navigator.canShare({ files: [file] })) {
+                        attemptedShare = true;
+                        await navigator.share({ files: [file] });
+                    }
+                }
+            } catch (err) { if (err.name !== 'AbortError') attemptedShare = false; }
+
+            if (!attemptedShare) {
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = fileName;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => window.URL.revokeObjectURL(url), 100);
+            }
+        }
+
+    } catch (error) {
+        console.error("Erreur lors de l'export PDF :", error);
+        showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
+        const btn = document.querySelector('button[onclick="exportToPDF()"]');
+        if (btn) {
+            btn.textContent = "📄 Exporter en PDF";
+            btn.disabled = false;
+        }
+    }
+}
+/*
+async function exportToPDF() {
+    try {
+        const btn = document.querySelector('button[onclick="exportToPDF()"]');
+        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        if (btn) {
+            btn.textContent = "⏳ Génération en cours...";
+            btn.disabled = true;
+        }
+
+        const mergedPdf = await PDFLib.PDFDocument.create();
+        
+        // 1. Initialisation de Fontkit pour Foxit/Chrome/Preview
+        mergedPdf.registerFontkit(fontkit);
+        
+        const getBuffer = (base64) => {
+            const str = window.atob(base64);
+            const bytes = new Uint8Array(str.length);
+            for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i);
+            return bytes.buffer;
+        };
+
+        // Chargement de la police (Assurez-vous que TAHOMA_FONT est dans pdf_templates.js)
+        const fontBytes = new Uint8Array(getBuffer(TAHOMA_FONT));
+        await mergedPdf.embedFont(fontBytes);
+
+        const allEssais = Array.from(document.querySelectorAll('.essai-card'));
+        const maxPerPage = 8;
+        const nbPages = Math.max(1, Math.ceil(allEssais.length / maxPerPage));
+
+        for (let p = 0; p < nbPages; p++) {
+            const subDoc = await PDFLib.PDFDocument.load(getBuffer(TEMPLATE_COMPACTION));
+            
+            // On enregistre Fontkit dans le sous-document
+            subDoc.registerFontkit(fontkit);
+            const subFont = await subDoc.embedFont(fontBytes);
+            const form = subDoc.getForm();
+
+            // Mappage des champs statiques
+            form.getFields().forEach(field => {
+                const pdfName = field.getName();
+                
+                if (pdfName.startsWith('essai-row-') || pdfName.startsWith('page-')) return; 
+                
+                const el = document.getElementById(pdfName);
+                if (el) {
+                    let val = el.type === 'checkbox' ? el.checked : el.value;
+                    
+                    if (val !== null && val !== undefined && val !== '') {
+                        try {
+                            if (el.type === 'checkbox') {
+                                val ? field.check() : field.uncheck();
+                            } else {
+                                let finalStr = val.toString();
+                                const lowerName = pdfName.toLowerCase();
+                                const isProjectNumber = lowerName.includes('projet') || lowerName.includes('no-') || lowerName.includes('numero');
+                                
+                                if (!isProjectNumber) {
+                                    finalStr = finalStr.replace(/(\d)\.(\d)/g, '$1,$2'); 
+                                }
+                                field.setText(finalStr);
+                            }
+                        } catch (e) {
+                            console.warn(`Impossible de remplir le champ ${pdfName}`, e);
+                        }
+                    }
+                }
+            });
+
+            // Mappage Invisible des Cases Maîtresses MG / CG
+            try {
+                if (document.querySelector('.auto-mg-sous:checked')) form.getCheckBox('sous-cal-mg').check();
+                if (document.querySelector('.auto-cg-sous:checked')) form.getCheckBox('sous-cal-cg').check();
+                if (document.querySelector('.auto-mg-rem:checked')) form.getCheckBox('rem-cal-mg').check();
+                if (document.querySelector('.auto-cg-rem:checked')) form.getCheckBox('rem-cal-cg').check();
+            } catch (e) {}
+
+            // Numérotation des pages
+            try { form.getTextField('page-actuelle').setText((p + 1).toString()); } catch(e) {}
+            try { form.getTextField('page-totale').setText(nbPages.toString()); } catch(e) {}
+
+            // Mappage de la grille (8 essais maximum par page)
+            const chunk = allEssais.slice(p * maxPerPage, (p + 1) * maxPerPage);
+            
+            chunk.forEach((card, index) => {
+                const row = index + 1; 
+                
+                const trySetGrid = (cls, pdfFieldSuffix) => {
+                    const el = card.querySelector(cls);
+                    if (el && el.value) {
+                        let finalVal = el.value.toString().replace(/(\d)\.(\d)/g, '$1,$2');
+                        try { form.getTextField(`essai-row-${pdfFieldSuffix}_${row}`).setText(finalVal); } catch(e) {}
+                    }
+                };
+
+                trySetGrid('.essai-secteur', 'secteur');
+                trySetGrid('.essai-no', 'no');
+                trySetGrid('.essai-elevation', 'elevation');
+                trySetGrid('.essai-part', 'part-5mm');
+                trySetGrid('.essai-eau', 'teneur-eau');
+                trySetGrid('.essai-mv-seche', 'mv-seche');
+                trySetGrid('.essai-mv-max-corr', 'mv-max-corr');
+                trySetGrid('.essai-compacite', 'compacite');
+                trySetGrid('.essai-rem', 'rem');
+            });
+
+            // === LE FIX FOXIT EST ICI ===
+            try {
+                form.updateFieldAppearances(subFont);
+                if (form.acroForm) form.acroForm.dict.set(PDFLib.PDFName.of('NeedAppearances'), PDFLib.PDFBool.False);
+            } catch (e) {
+                console.warn("Erreur d'apparence PDF", e);
+            }
+
+            // FIX: Dynamic Field Renaming
+            form.getFields().forEach(f => { try { f.acroField.setPartialName(f.getName() + '_pg' + p); } catch(e){} });
+
             const copiedPages = await mergedPdf.copyPages(subDoc, subDoc.getPageIndices());
             copiedPages.forEach(page => mergedPdf.addPage(page));
         }
@@ -464,36 +765,35 @@ async function exportToPDF() {
         const blob = new Blob([pdfBytes], { type: 'application/pdf' });
         const fileName = `Compactage_${noProjetVal}_${rawDateVal}_${initialsVal}.pdf`;
 
-        // Logique de partage iOS/Android
+        // LOGIQUE SÉPARÉE : APPLE VS ANDROID/PC
         const isMacTouch = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
-        const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || isMacTouch;
+        const isApple = /iPhone|iPad|iPod/i.test(navigator.userAgent) || isMacTouch;
         
         let attemptedShare = false;
         try {
-            if (isMobileDevice && navigator.share && navigator.canShare) {
+            // UNIQUEMENT POUR APPLE : On ouvre le menu de partage
+            if (isApple && navigator.share && navigator.canShare) {
                 const file = new File([blob], fileName, { type: 'application/pdf' });
                 if (navigator.canShare({ files: [file] })) {
                     attemptedShare = true;
-                    await navigator.share({
-                        files: [file],
-                        title: fileName
-                    });
+                    await navigator.share({ files: [file] });
                 }
             }
-        } catch (err) {}
+        } catch (err) {
+            console.log("Partage annulé ou échoué:", err);
+            if (err.name !== 'AbortError') attemptedShare = false;
+        }
 
+        // POUR ANDROID ET PC : On sauvegarde directement le fichier en local
         if (!attemptedShare) {
-            const reader = new FileReader();
-            reader.readAsDataURL(blob);
-            reader.onloadend = function() {
-                const base64data = reader.result;
-                const link = document.createElement('a');
-                link.href = base64data;
-                link.download = fileName;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            };
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = fileName;
+            document.body.appendChild(link);
+            link.click(); // Force le téléchargement direct dans le dossier de la tablette
+            document.body.removeChild(link);
+            setTimeout(() => window.URL.revokeObjectURL(url), 100);
         }
         
         if (btn) {
@@ -503,11 +803,11 @@ async function exportToPDF() {
 
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
-        alert("Erreur lors de l'export PDF. Vérifiez la console.");
+        showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
         const btn = document.querySelector('button[onclick="exportToPDF()"]');
         if (btn) {
             btn.textContent = "📄 Exporter en PDF";
             btn.disabled = false;
         }
     }
-}
+} */

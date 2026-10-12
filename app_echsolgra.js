@@ -357,13 +357,13 @@ async function exportToPDF() {
         const initialsVal = techNameVal.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
         const echNoVal = document.getElementById('ech-no')?.value.trim() || 'Ech';
 
-        const pdfBytes = await pdfDoc.save();
+        const pdfBytes = await mergedPdf.save();
         const fileName = `Echantillon_${rawDateVal}_${noProjetVal}_${echNoVal}_${initialsVal}.pdf`;
 
         // BIFURCATION : APPLICATION ANDROID vs WEB
         if (window.Capacitor && window.Capacitor.isNativePlatform()) {
             try {
-                const pdfBase64 = await pdfDoc.saveAsBase64(); // Attention ici : pdfDoc
+                const pdfBase64 = await mergedPdf.saveAsBase64(); // 
                 const { Filesystem, Share } = Capacitor.Plugins;
                 
                 const resultat = await Filesystem.writeFile({

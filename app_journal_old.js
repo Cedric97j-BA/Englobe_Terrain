@@ -517,13 +517,13 @@ async function exportToPDF() {
         const techName = document.getElementById('sig-prep-nom')?.value || '';
         const techInitials = techName.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
 
-        const pdfBytes = await pdfDoc.save();
+        const pdfBytes = await mergedPdf.save();
         const fileName = `JDC_${rawDate}_${noProjet}_${techInitials}.pdf`;
 
         // BIFURCATION : APPLICATION ANDROID vs WEB
         if (window.Capacitor && window.Capacitor.isNativePlatform()) {
             try {
-                const pdfBase64 = await pdfDoc.saveAsBase64(); // Attention ici : pdfDoc
+                const pdfBase64 = await mergedPdf.saveAsBase64(); // Attention ici : mergedPdf
                 const { Filesystem, Share } = Capacitor.Plugins;
                 
                 const resultat = await Filesystem.writeFile({

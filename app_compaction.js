@@ -574,13 +574,13 @@ async function exportToPDF() {
         const initialsVal = techNameVal.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
 
         
-        const pdfBytes = await pdfDoc.save();
+        const pdfBytes = await mergedPdf.save();
         const fileName = `Compactage_${noProjetVal}_${rawDateVal}_${initialsVal}.pdf`;
 
         // BIFURCATION : APPLICATION ANDROID vs WEB
         if (window.Capacitor && window.Capacitor.isNativePlatform()) {
             try {
-                const pdfBase64 = await pdfDoc.saveAsBase64(); // Attention ici : pdfDoc
+                const pdfBase64 = await mergedPdf.saveAsBase64(); // Attention ici : mergedPdf
                 const { Filesystem, Share } = Capacitor.Plugins;
                 
                 const resultat = await Filesystem.writeFile({

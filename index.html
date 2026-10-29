@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Formulaires de chantier</title>
     
-    <link rel="stylesheet" href="styles.css?v=1.0.0.">
+    <link rel="stylesheet" href="shared/css/styles.css">
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="logo.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,111 +29,271 @@
     🌙 Activer/Désactiver le Mode Nuit
     </button>
 
-    <h2 style="color: #334155; margin-bottom: 20px;">Sélectionnez un formulaire :</h2>
+    <h2 class="hub-heading">Sélectionnez un formulaire :</h2>
+
+
+    <!-- BARRE DE FILTRES (3 niveaux) -->
+    <div class="hub-filters">
+
+        <!-- Niveau 1 : Organisme -->
+        <div class="filter-row" role="group" aria-label="Filtrer par organisme">
+            <strong class="filter-label">Organisme :</strong>
+            <button type="button" class="filter-btn org-btn" data-org="all">Toutes</button>
+            <button type="button" class="filter-btn org-btn" data-org="eng">Englobe</button>
+            <button type="button" class="filter-btn org-btn" data-org="mtq">MTQ</button>
+            <button type="button" class="filter-btn org-btn" data-org="hdq">Hydro-Québec</button>
+            <button type="button" class="filter-btn org-btn" data-org="gen">Général</button>
+        </div>
+
+        <!-- Niveau 2 : Secteur (Englobe seulement) -->
+        <div class="filter-row englobe-only" id="secteur-row" role="group" aria-label="Filtrer par secteur Englobe">
+            <strong class="filter-label">Secteur :</strong>
+            <button type="button" class="filter-btn secteur-btn" data-secteur="all">Tous</button>
+            <button type="button" class="filter-btn secteur-btn" data-secteur="ici" title="Ingénierie, conception et inspection">ICI</button>
+            <button type="button" class="filter-btn secteur-btn" data-secteur="cer" title="Conseil en environnement et réhabilitation">CER</button>
+            <button type="button" class="filter-btn secteur-btn" data-secteur="gen">Général</button>
+        </div>
+
+        <!-- Niveau 3 : Service (Englobe seulement, menu déroulant limité au secteur choisi) -->
+        <div class="filter-row englobe-only" id="service-row">
+            <label class="filter-label" for="service-select">Service :</label>
+            <select id="service-select" class="filter-dropdown">
+                <option value="all">Tous les services</option>
+                <optgroup label="ICI" data-secteur="ici">
+                    <option value="acq">Acquisition de données</option>
+                    <option value="geo">Géosciences et géotechnique</option>
+                    <option value="gqa">Gestion de la qualité et des actifs</option>
+                    <option value="cmt">Ingénierie civile, municipale et transports</option>
+                    <option value="mat">Ingénierie et inspection des matériaux</option>
+                    <option value="bat">Science et ingénierie du bâtiment</option>
+                </optgroup>
+                <optgroup label="CER" data-secteur="cer">
+                    <option value="asa">Acceptabilité sociale</option>
+                    <option value="cli">Changements climatiques</option>
+                    <option value="eco">Écologie et milieux naturels</option>
+                    <option value="ees">Évaluation environnementale de site</option>
+                    <option value="sol">Gestion des sols contaminés</option>
+                    <option value="hyd">Hydrogéologie</option>
+                </optgroup>
+                <optgroup label="Transversal" data-secteur="gen">
+                    <option value="gen">Outils généraux</option>
+                </optgroup>
+            </select>
+        </div>
+    </div>
+
+    <!--
+    ==========================================================================
+    AJOUTER UNE NOUVELLE APPLICATION AU HUB
+    ==========================================================================
+    1. Placer l'application dans le dossier tree/ :
+         tree/<ORGANISME>/[<SECTEUR>/<SERVICE>/]<application>/index_<application>.html
+         tree/<ORGANISME>/[<SECTEUR>/<SERVICE>/]<application>/logo_<application>.png
+       (ex. : tree/ENG/ICI/MAT/Coulis/index_coulis.html pour Englobe,
+              tree/HYB/beton/index_beton.html pour une application hybride)
+       Le bouton Accueil de l'application peut simplement pointer vers
+       href="index.html" : master_setup.py le corrige (étape 4).
+
+    2. Copier le gabarit ci-dessous dans .dashboard-grid, dans la section
+       de son organisme, puis remplir les attributs :
+
+       data-org      Organismes, séparés par une espace :
+                       eng (Englobe), mtq (MTQ), hdq (Hydro-Québec), gen (Général)
+                       Hybride = plusieurs codes : "eng mtq", "eng hdq", "eng mtq hdq"
+       data-secteur  ici, cer ou gen   (secteurs Englobe)
+       data-service  ICI : acq, geo, gqa, cmt, mat, bat
+                     CER : asa, cli, eco, ees, sol, hyd
+                     Transversal : gen
+       card-tag      Organismes + secteur/service, sans jamais écrire HYB :
+                       "ENG • ICI - MAT", "ENG - MTQ • ICI - MAT", "ENG - MTQ • GEN"
+
+    3. Couleur de la carte (fond) : AUTOMATIQUE. styles.css remplit le fond
+       de la carte avec un dégradé diagonal de la couleur de l'organisme,
+       calculé à partir de data-org :
+         ENG #97c6b9   MTQ #6495b8   HDQ #c2955d   GEN #7fa99b
+         Hybride : dégradé diagonal entre les couleurs de chaque organisme
+                   (ex. "eng mtq" = vert sauge vers bleu acier)
+       La teinte est atténuée automatiquement en mode nuit. Il n'y a pas de
+       bordure colorée. Ne pas ajouter de style="background: ..." ni
+       style="border: ..." sur la carte : un style inline remplace la couleur
+       de l'organisme et casse le dégradé hybride.
+       La couleur du texte de card-tag suit le service (data-service).
+
+    4. Lancer master_setup.py depuis la racine du projet :
+         python master_setup.py
+       Il met à jour le lien de la carte dans ce Hub, le bouton Accueil de
+       l'application, les chemins vers shared/ et la liste de cache hors
+       ligne (sw_auto.js).
+
+    GABARIT :
+
+    <a href="tree/ENG/mon_app/index_mon_app.html" class="app-card"
+       data-org="eng" data-secteur="ici" data-service="mat">
+        <h5 class="card-tag">ENG • ICI - MAT</h5>
+        <img src="tree/ENG/mon_app/logo_mon_app.png" alt="Mon application" class="app-icon-img">
+        <h3 class="app-title">Titre de l'application</h3>
+        <p class="app-desc">Courte description</p>
+        <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+            EQ-09-IM-XXX rév. XX (AA-MM)
+        </div>
+    </a>
+    ==========================================================================
+    -->
 
     <div class="dashboard-grid">
-        
-        <!-- APPLICATION : JOURNAL NEW -->
-        <a href="index_journal.html" class="app-card">
-            <img src="logo_journal.png" alt="Journal_new" class="app-icon-img">
-            <h3 class="app-title">Journal de chantier (Nouveau)</h3>
-            <p class="app-desc">Suivi journalier des travaux et interventions (photos incluses)</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-134e rév. 00 (26-08)
-            </div>
-        </a>
 
-        <!-- APPLICATION : JOURNAL OLD -->
-        <a href="index_journal_old.html" class="app-card">
-            <img src="logo_journal.png" alt="Journal_old" class="app-icon-img">
-            <h3 class="app-title">Journal de chantier</h3>
-            <p class="app-desc">Suivi journalier des travaux et interventions</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-143 rév. 00 (99-02)
-            </div>
-        </a>
 
-        <!-- APPLICATION : JOURNALPHOTO -->
-        <a href="index_photo.html" class="app-card">
-            <img src="logo_photo.png" alt="Journal_photo" class="app-icon-img">
-            <h3 class="app-title">Journal photo</h3>
-            <p class="app-desc">Documentation photographique</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-579 rév. 00 (99-06)
-            </div>
-        </a>
-        
-        <!-- APPLICATION : BÉTON -->
-        <a href="index_beton.html" class="app-card">
-            <img src="logo_beton.png" alt="Béton" class="app-icon-img">
-            <h3 class="app-title">Rapport de béton</h3>
-            <p class="app-desc">Inspection et essais sur béton frais</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-505 rév. 09 (15-07)<br>
-                EQ-09-IM-504 rév. 04 (11-05)<br>
-                EQ-09-IM-503 rév. 03 (15-07)
-            </div>
-        </a>
+        <!-- ENGLOBE + MTQ : OUTILS GÉNÉRAUX -->
 
-        <!-- APPLICATION : PLANCHE DE RÉFÉRENCE -->
-        <a href="index_planche.html" class="app-card">
-            <img src="logo_planche.png" alt="Planche" class="app-icon-img">
-            <h3 class="app-title">Planche de référence</h3>
-            <p class="app-desc">Établissement de la densité cible</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-158 rév. 05 (26-05)
-            </div>
-        </a>
+            <!-- APPLICATION : JOURNAL NEW -->
+            <a href="tree/GEN/journal/index_journal.html" class="app-card" data-org="eng mtq" data-secteur="gen" data-service="gen">
+                <h5 class="card-tag">ENG - MTQ • GEN</h5>
+                <img src="tree/GEN/journal/logo_journal.png" alt="Journal_new" class="app-icon-img">
+                <h3 class="app-title">Journal de chantier (Nouveau)</h3>
+                <p class="app-desc">Suivi journalier des travaux et interventions (photos incluses + heures travaillées)</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-134e rév. 00 (26-08)
+                </div>
+            </a>
 
-        <!-- APPLICATION : COMPACTAGE -->
-        <a href="index_compaction.html" class="app-card">
-            <img src="logo_compaction.png" alt="Compactage" class="app-icon-img">
-            <h3 class="app-title">Rapport de compactage</h3>
-            <p class="app-desc">Essais in situ au nucléodensimètre</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-509 rév. 08 (26-06)
-            </div>
-        </a>
-  
-        <!-- APPLICATION : ECHANTILLONAGE SOLS ET GRANULATS -->
-        <a href="index_echsolgra.html" class="app-card">
-            <img src="logo_echsolgra.png" alt="Échantillonage" class="app-icon-img">
-            <h3 class="app-title">Échantillonage sols et granulats</h3>
-            <p class="app-desc">Collecte et analyse des échantillons</p>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-501 rév. 11 (26-06)
-            </div>
-        </a>
 
-        <!-- APPLICATION : PAVAGE -->
-        <a href="index_pavage.html" class="app-card">  
-            <img src="logo_enrob.png" alt="Pavage" class="app-icon-img">
-            <h3 class="app-title">Enrobé bitumineux</h3>
-            <p class="app-desc">Suivi et contrôle de l'enrobé bitumineux</p>
-            <span style="color:purple">(Bientôt)</span>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
-                EQ-09-IM-248a rév. 02 (13-04)
-            </div>
-        </a>
+        <!-- ENGLOBE + MTQ -->
 
-    
+            <!-- APPLICATION : JOURNAL OLD -->
+            <a href="tree/HYB/journal/index_journal_old.html" class="app-card" data-org="eng mtq" data-secteur="gen" data-service="gen">
+                <h5 class="card-tag">ENG - MTQ • GEN</h5>
+                <img src="tree/HYB/journal/logo_journal.png" alt="Journal_old" class="app-icon-img">
+                <h3 class="app-title">Journal de chantier</h3>
+                <p class="app-desc">Suivi journalier des travaux et interventions</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-143 rév. 00 (99-02)
+                </div>
+            </a>
 
-        <!-- PLACEHOLDER : NOUVELLE APPLICATION --> <!--
-        <a href="javascript:void(0)" class="app-card new-app-card" style="cursor: default;">
-            <div class="app-icon-img" style="display:flex; justify-content:center; align-items:center; font-size: 3rem; color: #94a3b8;">➕</div>
-            <h3 class="app-title" style="color: #64748b;">Nouveau Formulaire</h3>
-            <p class="app-desc">Emplacement pour une future application</p>
-        </a> -->
+            <!-- APPLICATION : JOURNALPHOTO -->
+            <a href="tree/HYB/journal_photo/index_photo.html" class="app-card" data-org="eng mtq" data-secteur="gen" data-service="gen">
+                <h5 class="card-tag">ENG - MTQ • GEN</h5>
+                <img src="tree/HYB/journal_photo/logo_photo.png" alt="Journal_photo" class="app-icon-img">
+                <h3 class="app-title">Journal photo</h3>
+                <p class="app-desc">Documentation photographique</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-579 rév. 00 (99-06)
+                </div>
+            </a>
+
+            <!-- APPLICATION : BÉTON -->
+            <a href="tree/HYB/beton/index_beton.html" class="app-card" data-org="eng mtq" data-secteur="ici" data-service="mat">
+                <h5 class="card-tag">ENG - MTQ • ICI - MAT</h5>
+                <img src="tree/HYB/beton/logo_beton.png" alt="Béton" class="app-icon-img">
+                <h3 class="app-title">Rapport de béton</h3>
+                <p class="app-desc">Inspection et essais sur béton frais</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-505 rév. 09 (15-07)<br>
+                    EQ-09-IM-504 rév. 04 (11-05)<br>
+                    EQ-09-IM-503 rév. 03 (15-07)
+                </div>
+            </a>
+
+            <!-- APPLICATION : PLANCHE DE RÉFÉRENCE -->
+            <a href="tree/HYB/planche/index_planche.html" class="app-card" data-org="eng mtq" data-secteur="ici" data-service="mat">
+                <h5 class="card-tag">ENG - MTQ • ICI - MAT</h5>
+                <img src="tree/HYB/planche/logo_planche.png" alt="Planche" class="app-icon-img">
+                <h3 class="app-title">Planche de référence</h3>
+                <p class="app-desc">Établissement de la densité cible</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-158 rév. 05 (26-05)
+                </div>
+            </a>
+
+            <!-- APPLICATION : COMPACTAGE -->
+            <a href="tree/HYB/compaction/index_compaction.html" class="app-card" data-org="eng mtq" data-secteur="ici" data-service="mat">
+                <h5 class="card-tag">ENG - MTQ • ICI - MAT</h5>
+                <img src="tree/HYB/compaction/logo_compaction.png" alt="Compactage" class="app-icon-img">
+                <h3 class="app-title">Rapport de compactage</h3>
+                <p class="app-desc">Essais in situ au nucléodensimètre</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-509 rév. 08 (26-06)
+                </div>
+            </a>
+
+
+        <!-- ENGLOBE -->
+
+            <!-- APPLICATION : COULIS -->
+            <a href="tree/ENG/ICI/MAT/Coulis/index_coulis.html" class="app-card" data-org="eng" data-secteur="ici" data-service="mat">
+                <h5 class="card-tag">ENG • ICI - MAT</h5>
+                <img src="tree/ENG/ICI/MAT/Coulis/logo_coulis.png" alt="Béton" class="app-icon-img">
+                <h3 class="app-title">Rapport de coulis</h3>
+                <p class="app-desc">Essais sur coulis prémélangé</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-197 rév. 01 (09-07)
+                </div>
+            </a>
+
+
+
+            <!-- APPLICATION : ECHANTILLONAGE SOLS ET GRANULATS -->
+            <a href="tree/ENG/ICI/MAT/Ech_sol_gran/index_echsolgra.html" class="app-card" data-org="eng" data-secteur="ici" data-service="mat">
+                <h5 class="card-tag">ENG • ICI - MAT</h5>
+                <img src="tree/ENG/ICI/MAT/Ech_sol_gran/logo_echsolgra.png" alt="Échantillonage" class="app-icon-img">
+                <h3 class="app-title">Échantillonage sols et granulats</h3>
+                <p class="app-desc">Collecte et analyse des échantillons</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-501 rév. 11 (26-06)
+                </div>
+            </a>
+
+            <!-- APPLICATION : PAVAGE -->
+            <a href="tree/ENG/ICI/MAT/Pavage/index_pavage.html" class="app-card" data-org="eng" data-secteur="ici" data-service="mat">
+                <h5 class="card-tag">ENG • ICI - MAT</h5>
+                <img src="tree/ENG/ICI/MAT/Pavage/logo_enrob.png" alt="Pavage" class="app-icon-img">
+                <h3 class="app-title">Enrobé bitumineux</h3>
+                <p class="app-desc">Suivi et contrôle de l'enrobé bitumineux</p>
+                <span style="color:purple">(Bientôt)</span>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    EQ-09-IM-248a rév. 02 (13-04)
+                </div>
+            </a>
+
+
+        <!-- MINISTÈRE DES TRANSPORT QUEBEC -->
+
+            <!-- PLACEHOLDER : NOUVELLE APPLICATION -->
+            <a href="javascript:void(0);" class="app-card" data-org="mtq" data-secteur="gen" data-service="gen">
+                <h5 class="card-tag">MTQ</h5>
+                <img src="" alt="App_MTQ" class="app-icon-img">
+                <h3 class="app-title">App_Title</h3>
+                <p class="app-desc">App_Description</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    CODE (XX-XX)<br>
+                    CODE (XX-XX)<br>
+                    CODE (XX-XX)
+                </div>
+            </a>
+
+
+        <!-- HYDRO-QUÉBEC -->
+
+            <!-- PLACEHOLDER : NOUVELLE APPLICATION -->
+            <a href="javascript:void(0);" class="app-card" data-org="hdq" data-secteur="gen" data-service="gen">
+                <h5 class="card-tag">HDQ</h5>
+                <img src="" alt="App_Hydro" class="app-icon-img">
+                <h3 class="app-title">App_Title</h3>
+                <p class="app-desc">App_Description</p>
+                <div style="margin-top: 10px; padding-top: 8px; border-top: 1px solid #e2e8f0; font-size: 0.7rem; color: #94a3b8; line-height: 1.2;">
+                    CODE (XX-XX)<br>
+                    CODE (XX-XX)<br>
+                    CODE (XX-XX)
+                </div>
+            </a>
+
 
     </div>
+    <p class="filter-empty" hidden>Aucun formulaire ne correspond à ces filtres.</p>
 </div>
 
-<button onclick="forceAppUpdate()" style="background: #0f172a; color: white; padding: 10px 20px; border-radius: 6px; font-weight: bold; border: none; cursor: pointer; display: block; margin: 20px auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
-    Mettre à jour l'application
-</button>
-
 <div>
-    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v1.3.1.3</span>
+    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v0.4.0.9</span>
 </div>
 
 <div style="text-align: center; margin: 12px auto 24px;">
@@ -147,7 +307,7 @@
 </div>
  
 <script>
-    const APP_VERSION = 'v1.3.1.3';
+    const APP_VERSION = 'v0.4.0.9';
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -195,26 +355,37 @@
             }
         }
 
-        const reportPrefixes = [
+        const reportConfigs = [
             ["Rapports béton", ["englobe_"]],
+            ["Rapports coulis", ["COULIS_"]],
+            ["Rapports pavage", ["PAVAGE_"]],
             ["Rapports compactage", ["compactage_"]],
             ["Rapports planche", ["planche_"]],
             ["Rapports échantillonnage", ["echsolgra_"]]
         ];
-        reportPrefixes.forEach(([label, prefixes]) => {
+
+        reportConfigs.forEach(([label, prefixes]) => {
             let count = 0;
             for (let i = 0; i < localStorage.length; i += 1) {
                 const key = localStorage.key(i);
                 if (!key) continue;
+                
                 if (prefixes.some((prefix) => key.startsWith(prefix))) {
                     count += 1;
                     continue;
                 }
+                
                 if (key.startsWith("ID_")) {
                     try {
                         const report = JSON.parse(localStorage.getItem(key));
-                        if (report && typeof report.displayName === "string" &&
-                            prefixes.some((prefix) => report.displayName.startsWith(prefix))) count += 1;
+                        if (report && typeof report.displayName === "string") {
+                            // Vérification spécifique selon le type de rapport dans le nom d'affichage
+                            const name = report.displayName;
+                            if (label === "Rapports béton" && name.includes("_CONC-") === false && name.includes("_COULIS_") === false) count += 1;
+                            else if (label === "Rapports coulis" && name.includes("_COULIS_")) count += 1;
+                            else if (label === "Rapports pavage" && name.includes("PAVAGE")) count += 1;
+                            else if (prefixes.some((prefix) => name.startsWith(prefix))) count += 1;
+                        }
                     } catch (error) {
                         console.warn("Rapport ignoré dans le diagnostic", key, error);
                     }
@@ -350,6 +521,131 @@
             showToast(isDark ? "Mode Nuit activé" : "Mode Jour activé", "info");
         }
     }
+
+
+document.addEventListener('DOMContentLoaded', () => {
+    const orgBtns = document.querySelectorAll('.org-btn');
+    const secteurBtns = document.querySelectorAll('.secteur-btn');
+    const serviceSelect = document.getElementById('service-select');
+    const serviceGroups = serviceSelect.querySelectorAll('optgroup');
+    const englobeRows = document.querySelectorAll('.filter-row.englobe-only');
+    const appCards = document.querySelectorAll('.app-card');
+    const emptyMsg = document.querySelector('.filter-empty');
+
+    // Organismes pour lesquels les niveaux Secteur / Service (propres à Englobe) s'appliquent
+    const ENGLOBE_SCOPES = ['all', 'eng', 'gen'];
+
+    // Lecture/écriture protégées (navigation privée, stockage bloqué)
+    function readFilter(key, allowedValues) {
+        try {
+            const value = localStorage.getItem(key);
+            // Ignorer une valeur périmée qui ne correspond plus à aucun choix
+            if (value && allowedValues.includes(value)) return value;
+        } catch (e) { /* stockage indisponible */ }
+        return 'all';
+    }
+    function saveFilter(key, value) {
+        try { localStorage.setItem(key, value); } catch (e) { /* stockage indisponible */ }
+    }
+
+    // Secteur auquel appartient un service (optgroup parent ; 'all' pour "Tous les services")
+    function secteurOfService(service) {
+        const option = [...serviceSelect.options].find(opt => opt.value === service);
+        const group = option && option.closest('optgroup');
+        return (group && group.dataset.secteur) || 'all';
+    }
+
+    // 1. Récupérer le dernier filtre utilisé ou mettre 'all' par défaut
+    let activeOrg = readFilter('hub_filter_org', [...orgBtns].map(btn => btn.dataset.org));
+    let activeSecteur = readFilter('hub_filter_secteur', [...secteurBtns].map(btn => btn.dataset.secteur));
+    let activeService = readFilter('hub_filter_service', [...serviceSelect.options].map(opt => opt.value));
+
+    function setActive(buttons, attr, value) {
+        buttons.forEach(btn => {
+            const isActive = btn.dataset[attr] === value;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-pressed', isActive);
+        });
+    }
+
+    function updateFilters() {
+        // Un service hors du secteur choisi n'a plus de sens : revenir à "Tous"
+        if (activeSecteur !== 'all' && activeService !== 'all'
+            && secteurOfService(activeService) !== activeSecteur) {
+            activeService = 'all';
+        }
+
+        saveFilter('hub_filter_org', activeOrg);
+        saveFilter('hub_filter_secteur', activeSecteur);
+        saveFilter('hub_filter_service', activeService);
+
+        // MTQ et Hydro-Québec : Secteur et Service grisés et ignorés
+        const englobeScope = ENGLOBE_SCOPES.includes(activeOrg);
+        englobeRows.forEach(row => {
+            row.classList.toggle('filter-row-disabled', !englobeScope);
+            row.setAttribute('aria-disabled', !englobeScope);
+            row.querySelectorAll('button, select').forEach(ctrl => { ctrl.disabled = !englobeScope; });
+        });
+
+        // Ne proposer que les services du secteur choisi. On masque ET on désactive
+        // l'optgroup : Safari iOS ignore "hidden" sur les éléments d'un <select>.
+        serviceGroups.forEach(group => {
+            const outOfSecteur = activeSecteur !== 'all' && group.dataset.secteur !== activeSecteur;
+            group.hidden = outOfSecteur;
+            group.disabled = outOfSecteur;
+        });
+
+        // Mettre à jour l'UI des boutons et du menu
+        setActive(orgBtns, 'org', activeOrg);
+        setActive(secteurBtns, 'secteur', activeSecteur);
+        serviceSelect.value = activeService;
+        // Bordure du menu à la couleur du service choisi (voir styles.css)
+        serviceSelect.dataset.service = activeService;
+
+        // Filtrer les cartes
+        let visibleCount = 0;
+        appCards.forEach(card => {
+            // data-org peut contenir plusieurs organismes ("eng mtq", "eng hdq",
+            // "eng mtq hdq") : la carte hybride apparaît sous chacun d'eux.
+            const orgList = (card.dataset.org || '').split(/\s+/).filter(Boolean);
+
+            const matchOrg = activeOrg === 'all' || orgList.includes(activeOrg) || orgList.includes('gen');
+            const matchSecteur = !englobeScope || activeSecteur === 'all' || card.dataset.secteur === activeSecteur;
+            const matchService = !englobeScope || activeService === 'all' || card.dataset.service === activeService;
+
+            const visible = matchOrg && matchSecteur && matchService;
+            card.classList.toggle('is-filtered-out', !visible);
+            if (visible) visibleCount += 1;
+        });
+
+        if (emptyMsg) emptyMsg.hidden = visibleCount > 0;
+    }
+
+    // 2. Attacher les événements de clics
+    orgBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeOrg = btn.dataset.org;
+            updateFilters();
+        });
+    });
+
+    secteurBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            activeSecteur = btn.dataset.secteur;
+            updateFilters();
+        });
+    });
+
+    serviceSelect.addEventListener('change', () => {
+        activeService = serviceSelect.value;
+        updateFilters();
+    });
+
+    // 3. Lancer le filtre au chargement
+    updateFilters();
+});
+
+    
 
 
 </script>

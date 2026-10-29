@@ -1,0 +1,1144 @@
+/* ========================================= */
+/* VARIABLES ET RÉINITIALISATION GLOBALE     */
+/* ========================================= */
+:root {
+    --primary: #0284c7;      
+    --primary-hover: #0369a1;
+    --success: #16a34a;      
+    --success-bg: #f0fdf4;
+    --warning: #b45309;      
+    --danger: #dc2626;       
+    --danger-bg: #fef2f2;
+    --temoin: #8b5cf6;       
+    --temoin-bg: #faf5ff;
+    --bg-page: #f1f5f9;      
+    --bg-card: #ffffff;
+    --border: #cbd5e1;
+    --text-main: #334155;
+    --text-muted: #64748b;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-main);
+    padding: 20px;
+    font-size: 16px; 
+}
+
+#app-container {
+    max-width: 1200px; 
+    margin: 0 auto;
+    background: transparent;
+}
+
+/* ========================================= */
+/* TYPOGRAPHIE ET EN-TÊTES                   */
+/* ========================================= */
+
+/* Empêche les en-têtes principaux de devenir gris/noirs en Mode Nuit */
+body.dark-mode header {
+    background-color: #97c6b9 !important;
+    color: white !important;
+}
+
+h2 {
+    color: var(--primary);
+    margin-bottom: 15px;
+    font-size: 1.5rem;
+    border-bottom: 2px solid var(--primary);
+    padding-bottom: 5px;
+}
+
+h3 {
+    color: var(--text-main);
+    margin-bottom: 15px;
+    font-size: 1.2rem;
+    background-color: #e2e8f0;
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+h4 {
+    font-size: 1rem;
+    color: var(--text-main);
+}
+
+/* ========================================= */
+/* BARRE DE NAVIGATION (ONGLETS)             */
+/* ========================================= */
+#form-navigation {
+    display: flex;
+    gap: 10px;
+    background: var(--bg-card);
+    padding: 12px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #1e293b;
+    background-color: #cbd5e1; 
+    border: 2px solid #94a3b8;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active, .tab-btn:hover {
+    background-color: var(--primary);
+    color: white;
+    border-color: var(--primary);
+}
+
+/* ========================================= */
+/* SECTIONS ET CARTES (FORMULAIRES)          */
+/* ========================================= */
+.tab-section {
+    background: var(--bg-card);
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+}
+
+.form-section {
+    margin-bottom: 30px;
+    padding: 15px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: #f8fafc;
+}
+
+/* ========================================= */
+/* GRILLES ET ALIGNEMENTS                    */
+/* ========================================= */
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* ========================================= */
+/* INPUTS ET CONTRÔLES                       */
+/* ========================================= */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end; /* Force l'input à rester aligné vers le bas */
+    height: 100%; /* Permet d'utiliser tout l'espace disponible de la grille */
+    margin-bottom: 15px;
+}
+
+.input-group label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: var(--text-main);
+    font-size: 0.95rem;
+    text-align: left;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+    width: 100%;
+    height: 44px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 1rem;
+    background-color: white;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+    min-width: 0; 
+    max-width: 100%;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(2, 132, 199, 0.2);
+}
+
+textarea {
+    resize: vertical;
+    min-height: 80px;
+    height: auto; 
+}
+
+/* ========================================= */
+/* CASES À COCHER (CHECKBOXES)               */
+/* ========================================= */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.checkbox-group label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+input[type="checkbox"] {
+    width: 22px !important;
+    height: 22px !important;
+    flex-shrink: 0 !important; 
+    cursor: pointer;
+    accent-color: var(--primary);
+    margin: 0;
+}
+
+/* ========================================= */
+/* STYLES SPÉCIFIQUES DES CARTES             */
+/* ========================================= */
+.truck-card {
+    border: 2px solid #94a3b8; /* Gris / Slate 400 */
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    background: #f8fafc; /* Gris très clair / Slate 50 */
+    transition: background-color 0.3s, border-color 0.3s;
+}
+.truck-card.truck-status-refused {
+    border-color: #dc2626 !important;
+    background-color: #fecaca !important;
+}
+.truck-card.truck-status-sampled {
+    border-color: #16a34a !important;
+    background-color: #bbf7d0 !important;
+}
+.truck-card.truck-status-tested {
+    border-color: #0284c7 !important;
+    background-color: #bae6fd !important;
+}
+.truck-card > .accordion-header {
+    background-color: #e2e8f0 !important;
+}
+.truck-card .input-group {
+    margin-bottom: 0; 
+}
+
+.sample-card {
+    border: 2px solid var(--success);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background: var(--success-bg);
+}
+.sample-card h3 {
+    background-color: #dcfce7;
+    color: var(--success);
+}
+
+.temoin-only-card {
+    border: 2px solid var(--temoin);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    background: var(--temoin-bg);
+}
+.temoin-only-card h3,
+.temoin-only-card h4 {
+    background-color: #f3e8ff;
+    color: var(--temoin);
+}
+
+/* --- ACCORDÉONS --- */
+.accordion-header {
+    background-color: #e0f2fe;
+    padding: 12px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    border-bottom: 1px solid #bae6fd;
+}
+.accordion-content {
+    display: none;
+    padding: 15px;
+}
+.accordion-content.active {
+    display: block;
+}
+.chevron {
+    transition: transform 0.3s ease;
+    font-size: 1.2rem;
+    color: #0284c7;
+}
+.chevron.rotated {
+    transform: rotate(-90deg);
+}
+
+/* ========================================= */
+/* BOUTONS D'ACTION                          */
+/* ========================================= */
+button[onclick^="add"] {
+    padding: 12px 20px;
+    font-size: 1rem;
+    border-radius: 6px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: transform 0.1s, filter 0.2s;
+}
+button[onclick^="add"]:active {
+    transform: scale(0.98);
+}
+button[onclick^="add"]:hover {
+    filter: brightness(110%);
+}
+
+/* ========================================= */
+/* TÉMOIN : CONDITIONS INITIALES DE CURE       */
+/* (ligne Prélèvement + lignes a à i)          */
+/* ========================================= */
+.prelev-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    width: 100%;
+    max-width: 100%;
+}
+.prelev-row .prelev-title {
+    flex: 0 0 100px;
+    font-weight: bold;
+}
+.prelev-row > div {
+    flex: 1 1 140px;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+.prelev-row > div > label {
+    flex: 0 0 auto;
+}
+.prelev-row > div > input {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+}
+.temoin-container details,
+.temoin-only-card details {
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+.temoin-container details .input-group,
+.temoin-only-card details .input-group {
+    min-width: 0;
+}
+
+/* ========================================= */
+/* RESPONSIVITÉ MOBILE (CORRECTIFS iPHONE/iPAD)*/
+/* ========================================= */
+@media (max-width: 820px) {
+    
+    /* 1. PROTECTION ABSOLUE DU JAVASCRIPT */
+    .temoin-container[style*="display: none"],
+    .temoin-container[style*="display:none"],
+    *[style*="display: none"], 
+    *[style*="display:none"] {
+        display: none !important;
+    }
+
+    /* 2. ESPACE GLOBAL */
+    body, #app-container {
+        padding: 4px !important; 
+        overflow-x: hidden !important; 
+    }
+    .tab-section {
+        padding: 15px 10px !important; 
+    }
+
+    /* 3. EN-TÊTE ET NAVIGATION */
+    header, .bg-primary {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        text-align: center !important;
+        height: auto !important;
+        padding: 15px 10px !important;
+    }
+    #main-logo {
+        margin: 0 auto 10px auto !important;
+        max-width: 90% !important;
+    }
+    #form-navigation {
+        flex-direction: column !important; 
+    }
+    .tab-btn {
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+
+    /* 4. TRUCK CARDS : ALIGNEMENT PAR LE BAS DE TOUTES LES LIGNES */
+    .truck-card > div:not(.accordion-content):not(.accordion-header),
+    .truck-card .accordion-content > div:not(.truck-toggles-container) {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: flex-end !important;
+        gap: 6px !important;
+        width: 100% !important;
+        margin-bottom: 10px !important;
+        flex-wrap: nowrap !important;
+    }
+
+    /* Protection absolue de l'accordéon sur mobile */
+    .accordion-content { display: none !important; }
+    .accordion-content.active { display: block !important; }
+
+    .truck-card .input-group {
+        flex: 1 1 0% !important;
+        min-width: 0 !important;
+        margin-bottom: 0 !important;
+    }
+    .truck-card .input-group:has(.truck-remarques-select) {
+        flex: 1 1 100% !important;
+        margin-top: 8px !important;
+    }
+    .truck-card .input-group label {
+        font-size: 0.8rem !important;
+        line-height: 1.15 !important;
+        margin-bottom: 4px !important;
+    }
+    .truck-remarks-controls {
+        flex-wrap: wrap !important;
+    }
+    .truck-remarks-controls .truck-remarques-list {
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+        width: 100% !important;
+    }
+    .truck-remarks-controls button {
+        flex: 1 1 auto !important;
+        min-height: 42px !important;
+    }
+    .truck-card > div:has(input[type="checkbox"]) {
+        align-items: center !important;
+        flex-wrap: wrap !important;
+    }
+
+    /* 4.1. ALIGNEMENT DES INPUTS D'ÉCHANTILLON DANS LA CARTE CAMION */
+    .truck-sample-fields > div {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+    .truck-sample-fields > div > div {
+        flex: 1 1 100% !important;
+        min-width: 100% !important;
+    }
+    .truck-sample-fields label {
+        font-size: 0.8rem !important;
+        line-height: 1.15 !important;
+        margin-bottom: 4px !important;
+    }
+
+    /* 5. FORM 3 : CONDITIONS INITIALES ET SOUS-SECTIONS */
+    .sample-card .form-section div[style*="grid-template-columns: 1fr 1fr"]:not([style*="2fr"]),
+    .temoin-only-card div[style*="grid-template-columns: 1fr 1fr"]:not([style*="2fr"]) {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    .grid-2 {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    .prelev-row {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+    .prelev-row .prelev-title {
+        flex: 0 0 auto !important;
+    }
+    .prelev-row > div {
+        flex: 1 1 auto !important;
+        width: 100% !important;
+    }
+    .prelev-row > div > label {
+        min-width: 50px;
+    }
+
+    /* 6. NETTOYAGE DES INPUTS TEMPS/DATE APPLE */
+    input[type="date"], input[type="time"] {
+        -webkit-appearance: none !important; 
+        min-width: 0 !important;
+    }
+    input[type="time"]::-webkit-clear-button,
+    input[type="time"]::-webkit-inner-spin-button,
+    input[type="date"]::-webkit-clear-button,
+    input[type="date"]::-webkit-inner-spin-button {
+        display: none !important;
+    }
+}
+
+/* ========================================== */
+/* STYLES DU DASHBOARD (HUB PRINCIPAL)        */
+/* ========================================== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    padding: 10px 0;
+}
+.app-card {
+    background: white;
+    border-radius: 12px;
+    padding: 30px 20px;
+    text-align: center;
+    text-decoration: none;
+    color: #334155;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    border: 2px solid transparent;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+.app-card:active, .app-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.1);
+    border-color: #97c6b9; 
+}
+.app-icon-img { 
+    width: 65px; 
+    height: 65px; 
+    object-fit: contain; 
+}
+.app-title { font-size: 1.2rem; font-weight: bold; margin: 0; }
+.app-desc { font-size: 0.9rem; color: #64748b; margin: 0; }
+
+/* ========================================== */
+/* PALETTE ORGANISMES / SERVICES (HUB)        */
+/* Ancrée sur le vert Englobe #97c6b9         */
+/* ========================================== */
+:root {
+    /* Bordures / remplissages : organismes */
+    --org-eng: #97c6b9;      /* Englobe : vert sauge */
+    --org-gen: #7fa99b;      /* Général : sauge-ardoise */
+    --org-mtq: #6495b8;      /* MTQ : bleu acier atténué */
+    --org-hdq: #c2955d;      /* Hydro-Québec : ocre atténué */
+    --org-hyb: #82aeb8;      /* Hybride : sarcelle-ardoise */
+
+    /* Bordures / remplissages : secteurs */
+    --svc-env: #7fb8b0;      /* CER : sarcelle douce */
+
+    /* Bordures / remplissages : services (une couleur distincte par service) */
+    --svc-gen: #94a3b8;      /* Transversal - Outils généraux : ardoise */
+    --svc-acq: #2dd4bf;      /* ICI - Acquisition de données : sarcelle */
+    --svc-geo: #fb923c;      /* ICI - Géosciences et géotechnique : orange terre */
+    --svc-gqa: #c084fc;      /* ICI - Gestion de la qualité et des actifs : lavande */
+    --svc-cmt: #60a5fa;      /* ICI - Ingénierie civile, municipale et transports : cobalt */
+    --svc-mat: #4ade80;      /* ICI - Ingénierie et inspection des matériaux : menthe */
+    --svc-bat: #f472b6;      /* ICI - Science et ingénierie du bâtiment : rose */
+    --svc-asa: #e879f9;      /* CER - Acceptabilité sociale : orchidée */
+    --svc-cli: #e879f9;      /* CER - Changements climatiques : orchidée */
+    --svc-eco: #a3e635;      /* CER - Écologie et milieux naturels : lime */
+    --svc-ees: #34d399;      /* CER - Évaluation environnementale de site : émeraude */
+    --svc-sol: #acc860;      /* CER - Gestion des sols contaminés : vert sol */
+    --svc-hyd: #38bdf8;      /* CER - Hydrogéologie : bleu eau */
+
+    /* Textes (assombris pour contraste >= 4.5:1 sur blanc) */
+    --org-eng-text: #3f7a69;
+    --org-gen-text: #4f7366;
+    --org-mtq-text: #3d6f93;
+    --org-hdq-text: #8a6330;
+    --org-hyb-text: #3f7680;
+    --svc-env-text: #2f7068;
+
+    /* Boutons de filtre : texte par défaut / texte sur bouton actif */
+    --filter-text: #475569;
+    --filter-on-fill: #ffffff;
+    --hub-card-bg: #ffffff;
+}
+
+body.dark-mode {
+    --org-eng-text: #a8d4c7;
+    --org-gen-text: #9fc4b6;
+    --org-mtq-text: #93bad8;
+    --org-hdq-text: #dcb383;
+    --org-hyb-text: #9cc8d1;
+    --svc-env-text: #94d0c7;
+    --filter-text: #cbd5e1;
+    --hub-card-bg: #1e293b;
+}
+
+/* --- Titre du Hub --- */
+.hub-heading {
+    color: #334155;
+    margin-bottom: 20px;
+}
+
+/* --- Barre de filtres --- */
+.hub-filters {
+    margin-bottom: 25px;
+    background: var(--bg-card);
+    padding: 15px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.filter-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+.filter-label {
+    color: #475569;
+    font-size: 0.9rem;
+    font-weight: bold;
+    min-width: 140px;
+}
+.filter-btn {
+    --c: #64748b;            /* couleur de bordure / remplissage */
+    padding: 6px 14px;
+    border: 2px solid var(--c);
+    background: transparent;
+    color: var(--filter-text);
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s;
+}
+.filter-btn:hover {
+    background: color-mix(in srgb, var(--c) 15%, transparent);
+}
+.filter-btn.active,
+.filter-btn.active:hover {
+    background: var(--c);
+    color: var(--filter-on-fill);
+    /* Lisibilité du texte blanc sur les teintes claires (menthe, lime...) */
+    text-shadow: 0 1px 2px rgba(15, 23, 42, 0.45);
+}
+.filter-btn:focus-visible {
+    outline: 2px solid var(--c);
+    outline-offset: 2px;
+}
+
+.org-btn[data-org="eng"]         { --c: var(--org-eng); }
+.org-btn[data-org="mtq"]         { --c: var(--org-mtq); }
+.org-btn[data-org="hdq"]         { --c: var(--org-hdq); }
+.org-btn[data-org="gen"]         { --c: var(--org-gen); }
+
+/* Secteurs : ICI = vert Englobe, CER = sarcelle environnement */
+.secteur-btn[data-secteur="ici"] { --c: var(--org-eng); }
+.secteur-btn[data-secteur="cer"] { --c: var(--svc-env); }
+.secteur-btn[data-secteur="gen"] { --c: var(--svc-gen); }
+
+/* Services : une couleur par service (boutons et étiquettes de cartes) */
+[data-service="gen"] { --svc: var(--svc-gen); }
+[data-service="acq"] { --svc: var(--svc-acq); }
+[data-service="geo"] { --svc: var(--svc-geo); }
+[data-service="gqa"] { --svc: var(--svc-gqa); }
+[data-service="cmt"] { --svc: var(--svc-cmt); }
+[data-service="mat"] { --svc: var(--svc-mat); }
+[data-service="bat"] { --svc: var(--svc-bat); }
+[data-service="asa"] { --svc: var(--svc-asa); }
+[data-service="cli"] { --svc: var(--svc-cli); }
+[data-service="eco"] { --svc: var(--svc-eco); }
+[data-service="ees"] { --svc: var(--svc-ees); }
+[data-service="sol"] { --svc: var(--svc-sol); }
+[data-service="hyd"] { --svc: var(--svc-hyd); }
+
+/* --- Menu déroulant des services --- */
+.hub-filters .filter-dropdown {
+    flex: 1 1 260px;
+    width: auto;
+    max-width: 480px;
+    height: 40px;
+    padding: 0 40px 0 14px;
+    border: 2px solid var(--svc, #94a3b8);   /* couleur du service choisi */
+    border-radius: 20px;
+    background-color: #f8fafc;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+    color: var(--filter-text);
+    font-size: 0.85rem;
+    font-weight: bold;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.hub-filters .filter-dropdown:hover {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--svc, #94a3b8) 20%, transparent);
+}
+.hub-filters .filter-dropdown:focus {
+    outline: none;
+    border-color: var(--svc, #64748b);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--svc, #64748b) 30%, transparent);
+}
+.hub-filters .filter-dropdown optgroup {
+    font-weight: bold;
+    color: #64748b;
+}
+.hub-filters .filter-dropdown option {
+    font-weight: normal;
+    color: #334155;
+}
+
+/* --- Mobile : libellé au-dessus, menu pleine largeur --- */
+@media (max-width: 600px) {
+    .hub-filters .filter-label {
+        min-width: 100%;
+    }
+    .hub-filters .filter-dropdown {
+        flex-basis: 100%;
+        max-width: 100%;
+        height: 44px;   /* cible tactile confortable */
+    }
+}
+
+/* Secteur / Service grisés quand MTQ ou Hydro-Québec est choisi */
+.filter-row-disabled {
+    opacity: 0.35;
+    pointer-events: none;
+    filter: grayscale(90%);
+}
+
+.filter-empty {
+    text-align: center;
+    color: var(--text-muted);
+    padding: 20px 0;
+}
+
+/* --- Hiérarchie des cartes : fond coloré en diagonale = organisme --- */
+/* Intensité de la teinte : plus discrète en mode nuit */
+:root {
+    --card-tint-strong: 42%;
+    --card-tint-soft: 10%;
+}
+body.dark-mode {
+    --card-tint-strong: 30%;
+    --card-tint-soft: 6%;
+}
+
+.app-card[data-org] {
+    --card-org: var(--org-gen);
+    --card-tag: var(--org-gen-text);
+    /* Teintes : couleur d'organisme mélangée au fond de carte (blanc ou ardoise) */
+    --tint-eng: color-mix(in srgb, var(--org-eng) var(--card-tint-strong), var(--hub-card-bg));
+    --tint-mtq: color-mix(in srgb, var(--org-mtq) var(--card-tint-strong), var(--hub-card-bg));
+    --tint-hdq: color-mix(in srgb, var(--org-hdq) var(--card-tint-strong), var(--hub-card-bg));
+    --card-fill: linear-gradient(135deg,
+        color-mix(in srgb, var(--card-org) var(--card-tint-strong), var(--hub-card-bg)) 0%,
+        color-mix(in srgb, var(--card-org) var(--card-tint-soft), var(--hub-card-bg)) 100%);
+    border: 2px solid transparent;
+    background: var(--card-fill);
+}
+.app-card[data-org="eng"] { --card-org: var(--org-eng); --card-tag: var(--org-eng-text); }
+.app-card[data-org="mtq"] { --card-org: var(--org-mtq); --card-tag: var(--org-mtq-text); }
+.app-card[data-org="hdq"] { --card-org: var(--org-hdq); --card-tag: var(--org-hdq-text); }
+
+/* Hybride (plusieurs organismes, data-org contient une espace) :
+   dégradé diagonal entre les couleurs de chaque organisme */
+.app-card[data-org*=" "] {
+    --card-org: var(--org-hyb);
+    --card-tag: var(--org-hyb-text);
+    --card-fill: linear-gradient(135deg, var(--tint-eng), var(--tint-mtq));
+}
+.app-card[data-org~="eng"][data-org~="hdq"] {
+    --card-fill: linear-gradient(135deg, var(--tint-eng), var(--tint-hdq));
+}
+.app-card[data-org~="mtq"][data-org~="hdq"] {
+    --card-fill: linear-gradient(135deg, var(--tint-mtq), var(--tint-hdq));
+}
+.app-card[data-org~="eng"][data-org~="mtq"][data-org~="hdq"] {
+    --card-fill: linear-gradient(135deg, var(--tint-eng), var(--tint-mtq), var(--tint-hdq));
+}
+
+/* Titre : pastille translucide plutôt que le gris plein des h3 */
+.app-card[data-org] .app-title {
+    background: color-mix(in srgb, var(--hub-card-bg) 70%, transparent);
+}
+
+/* Étiquette : couleur du service, assombrie pour rester lisible sur fond blanc
+   (les outils généraux gardent la couleur de l'organisme) */
+.app-card[data-service]:not([data-service="gen"]) {
+    --card-tag: color-mix(in srgb, var(--svc) 55%, #1e293b);
+}
+body.dark-mode .app-card[data-service]:not([data-service="gen"]) {
+    --card-tag: color-mix(in srgb, var(--svc) 85%, #ffffff);
+}
+
+.card-tag {
+    margin: 0 0 5px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    color: var(--card-tag, var(--org-gen-text));
+}
+
+.app-card[data-org]:hover,
+.app-card[data-org]:active {
+    border-color: transparent;
+    box-shadow: 0 10px 20px color-mix(in srgb, var(--card-org) 35%, transparent);
+}
+
+/* Masquage par les filtres (classe plutôt que style inline) */
+.app-card.is-filtered-out {
+    display: none !important;
+}
+
+.new-app-card {
+    background: #f8fafc;
+    border: 2px dashed #cbd5e1;
+    box-shadow: none;
+}
+.new-app-card:hover, .new-app-card:active {
+    border-color: #97c6b9;
+    background: #f0fdfa;
+}
+
+/* --- NOTIFICATIONS TOAST --- */
+.toast-notification {
+    visibility: hidden;
+    min-width: 250px;
+    background-color: #1e293b; /* Gris très foncé */
+    color: #f8fafc;
+    text-align: center;
+    border-radius: 8px;
+    padding: 16px;
+    position: fixed;
+    z-index: 10000;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+    font-size: 1rem;
+    font-weight: bold;
+}
+
+/* Couleurs selon le contexte */
+.toast-success { border-bottom: 4px solid #22c55e; } /* Vert */
+.toast-error { border-bottom: 4px solid #ef4444; } /* Rouge */
+.toast-info { border-bottom: 4px solid #0ea5e9; } /* Bleu */
+
+/* Animation d'apparition et disparition */
+.toast-notification.show {
+    visibility: visible;
+    animation: slideInUp 0.4s ease-out, fadeOut 0.5s ease-in 2.5s;
+}
+
+@keyframes slideInUp {
+    from { bottom: 0; opacity: 0; }
+    to { bottom: 40px; opacity: 1; }
+}
+@keyframes fadeOut {
+    from { bottom: 40px; opacity: 1; }
+    to { bottom: 40px; opacity: 0; }
+}
+
+/* --- MODE NUIT (CORRIGÉ) --- */
+body.dark-mode {
+    background-color: #0f172a; 
+    color: #f8fafc;
+}
+
+/* 1. Main containers and cards */
+body.dark-mode #form-navigation,
+body.dark-mode .tab-section,
+body.dark-mode .form-section,
+body.dark-mode .app-card,
+body.dark-mode .new-app-card {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+/* 1b. Hub : garder le fond coloré des cartes (pas de bordure grise) */
+body.dark-mode .app-card[data-org] {
+    border-color: transparent;
+}
+body.dark-mode .hub-heading {
+    color: #f1f5f9;
+}
+body.dark-mode .hub-filters {
+    background-color: #1e293b;
+}
+body.dark-mode .filter-label {
+    color: #cbd5e1;
+}
+body.dark-mode .hub-filters .filter-dropdown {
+    background-color: #0f172a;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23cbd5e1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    border-color: var(--svc, #64748b);
+    color: var(--filter-text);
+}
+body.dark-mode .hub-filters .filter-dropdown option {
+    color: #f8fafc;
+}
+
+/* 2. Specific forms (Keeping the color hierarchy but dark) */
+body.dark-mode .truck-card {
+    background-color: #172554; /* Very dark blue */
+    border-color: #1e3a8a;
+}
+body.dark-mode .truck-card.truck-status-refused {
+    border-color: #f87171 !important;
+    background-color: #450a0a !important;
+}
+body.dark-mode .truck-card.truck-status-sampled {
+    border-color: #4ade80 !important;
+    background-color: #052e16 !important;
+}
+body.dark-mode .truck-card.truck-status-tested {
+    border-color: #38bdf8 !important;
+    background-color: #082f49 !important;
+}
+body.dark-mode .truck-card > .accordion-header {
+    background-color: #334155 !important;
+}
+body.dark-mode .home-button {
+    border: 1px solid #94a3b8 !important;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35) !important;
+}
+body.dark-mode .sample-card {
+    background-color: #064e3b; /* Very dark green */
+    border-color: #047857;
+}
+body.dark-mode .temoin-only-card {
+    background-color: #3b0764; /* Very dark purple */
+    border-color: #6b21a8;
+}
+
+/* 3. Headers and Accordions */
+body.dark-mode h2 { border-bottom-color: #38bdf8; color: #38bdf8; }
+body.dark-mode h3 { background-color: #334155; color: #f8fafc; }
+body.dark-mode h4 { color: #f8fafc; }
+body.dark-mode .sample-card h3 { background-color: #047857; color: white; }
+body.dark-mode .temoin-only-card h3, 
+body.dark-mode .temoin-only-card h4 { background-color: #6b21a8; color: white; }
+body.dark-mode .accordion-header { background-color: #1e3a8a; border-bottom-color: #172554; }
+body.dark-mode .truck-header-summary,
+body.dark-mode .form-instructions,
+body.dark-mode .truck-legend,
+body.dark-mode .page-numbering {
+    color: #f8fafc !important;
+}
+body.dark-mode .truck-legend span {
+    color: #7dd3fc !important;
+}
+body.dark-mode .truck-legend span:nth-of-type(2) {
+    color: #86efac !important;
+}
+body.dark-mode .truck-legend span:nth-of-type(3) {
+    color: #fca5a5 !important;
+}
+body.dark-mode #truck-pagination-controls {
+    background-color: #334155 !important;
+}
+body.dark-mode #save-manager button,
+body.dark-mode #truck-pagination-controls button,
+body.dark-mode .collapse-trucks-button {
+    border: 1px solid #94a3b8 !important;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+}
+
+/* 4. Navigation Tabs */
+body.dark-mode .tab-btn { background-color: #334155; color: #cbd5e1; border-color: #475569; }
+body.dark-mode .tab-btn.active, 
+body.dark-mode .tab-btn:hover { background-color: #0284c7; color: white; border-color: #0284c7; }
+
+/* 5. Inputs and Textareas */
+body.dark-mode input, 
+body.dark-mode select, 
+body.dark-mode textarea {
+    background-color: #0f172a;
+    color: #ffffff;
+    border-color: #475569;
+}
+body.dark-mode input:focus,
+body.dark-mode select:focus,
+body.dark-mode textarea:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+}
+
+/* 6. Text and Labels */
+body.dark-mode label, 
+body.dark-mode .app-desc, 
+body.dark-mode .accordion-header {
+    color: #cbd5e1;
+}
+body.dark-mode #save-manager label,
+body.dark-mode #last-saved-status {
+    color: #e2e8f0 !important;
+}
+body.dark-mode .app-title,
+body.dark-mode .chevron {
+    color: #f8fafc;
+}
+
+/* 7. Forcer l'écrasement des couleurs écrites directement dans le HTML (SAUF LE HEADER) */
+body.dark-mode [style*="background"]:not(header):not(header *) {
+    background: #1e293b !important;
+    color: #f8fafc !important;
+    border-color: #334155 !important;
+}
+
+/* Force le header à rester vert (Sécurité maximale avec sélecteur fort) */
+body.dark-mode header,
+body.dark-mode header[style] {
+    background: #97c6b9 !important;
+    color: white !important;
+}
+
+/* Le bouton "Accueil" des formulaires doit rester bleu nuit */
+body.dark-mode header a.home-button {
+    background: #1e293b !important;
+    color: white !important;
+}
+
+/* La petite bulle "Accueil" sur le hub doit garder son vert d'origine */
+body.dark-mode header span[style] {
+    background: #73968c !important;
+    color: white !important;
+}
+
+/* Inversion du logo (sombre vers blanc) */
+body.dark-mode header img {
+    filter: invert(1);
+    mix-blend-mode: screen;
+}
+
+/* ===================================================================== */
+/* RAFRAÎCHISSEMENT VISUEL (ajouté par SFGEN, 2026-10-28)                 */
+/* Tout est regroupé dans ce bloc : le supprimer rétablit l'apparence     */
+/* d'avant. Aucune image ni police ajoutée : seulement des dégradés CSS   */
+/* calculés par le navigateur (rien de plus à télécharger).               */
+/* Les couleurs d'état des camions et le mode nuit existants ne sont pas  */
+/* modifiés.                                                              */
+/* ===================================================================== */
+
+/* --- 1. Fond des pages (Hub et applications) --------------------------
+   Halo vert Englobe très léger en haut de page plutôt qu'un gris uni.
+   Les formulaires (.tab-section) restent blancs pour la lisibilité. */
+body {
+    background-color: var(--bg-page);
+    background-image:
+        radial-gradient(1100px 460px at 50% -170px, color-mix(in srgb, #97c6b9 34%, transparent), transparent 72%),
+        linear-gradient(180deg, color-mix(in srgb, #97c6b9 8%, var(--bg-page)) 0, var(--bg-page) 560px);
+    background-repeat: no-repeat;
+}
+body.dark-mode {
+    background-image:
+        radial-gradient(1100px 460px at 50% -170px, color-mix(in srgb, #97c6b9 16%, transparent), transparent 72%),
+        linear-gradient(180deg, #111d2f 0, #0f172a 560px);
+}
+
+/* --- 2. Cartes du Hub ----------------------------------------------------
+   Teintes un peu plus présentes + bande de couleur de l'organisme en haut.
+   Hybride : deux teintes franches en diagonale et bande partagée,
+   pour bien distinguer ENG - MTQ de ENG. */
+:root {
+    --card-tint-strong: 52%;
+    --card-tint-soft: 15%;
+}
+body.dark-mode {
+    --card-tint-strong: 38%;
+    --card-tint-soft: 9%;
+}
+.app-card[data-org] {
+    --card-strip: linear-gradient(var(--card-org), var(--card-org));
+    background: var(--card-strip) top / 100% 6px no-repeat, var(--card-fill);
+}
+.app-card[data-org*=" "] {
+    --card-fill: linear-gradient(135deg, var(--tint-eng) 0%, var(--tint-eng) 38%, var(--tint-mtq) 62%, var(--tint-mtq) 100%);
+    --card-strip: linear-gradient(90deg, var(--org-eng) 0 50%, var(--org-mtq) 50% 100%);
+}
+.app-card[data-org~="eng"][data-org~="hdq"] {
+    --card-fill: linear-gradient(135deg, var(--tint-eng) 0%, var(--tint-eng) 38%, var(--tint-hdq) 62%, var(--tint-hdq) 100%);
+    --card-strip: linear-gradient(90deg, var(--org-eng) 0 50%, var(--org-hdq) 50% 100%);
+}
+.app-card[data-org~="mtq"][data-org~="hdq"] {
+    --card-fill: linear-gradient(135deg, var(--tint-mtq) 0%, var(--tint-mtq) 38%, var(--tint-hdq) 62%, var(--tint-hdq) 100%);
+    --card-strip: linear-gradient(90deg, var(--org-mtq) 0 50%, var(--org-hdq) 50% 100%);
+}
+.app-card[data-org~="eng"][data-org~="mtq"][data-org~="hdq"] {
+    --card-fill: linear-gradient(135deg, var(--tint-eng) 0%, var(--tint-eng) 28%, var(--tint-mtq) 42%, var(--tint-mtq) 58%, var(--tint-hdq) 72%, var(--tint-hdq) 100%);
+    --card-strip: linear-gradient(90deg, var(--org-eng) 0 33.3%, var(--org-mtq) 33.3% 66.6%, var(--org-hdq) 66.6% 100%);
+}
+
+/* --- 3. Boutons utilitaires du Hub (mode nuit, diagnostics, historique) --
+   Même apparence pour les trois (styles écrits dans le HTML remplacés). */
+#app-container > button[onclick="toggleDarkMode()"],
+#diagnostics-toggle,
+button[onclick*="changelog.html"] {
+    background: #1e293b !important;
+    color: #ffffff !important;
+    border: 1px solid color-mix(in srgb, #97c6b9 75%, #1e293b) !important;
+    border-radius: 999px !important;
+    padding: 10px 22px !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    line-height: 1.2;
+    opacity: 1 !important;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    transition: background-color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+#app-container > button[onclick="toggleDarkMode()"]:hover,
+#diagnostics-toggle:hover,
+button[onclick*="changelog.html"]:hover {
+    background: #2b3a52 !important;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+}
+#app-container > button[onclick="toggleDarkMode()"]:active,
+#diagnostics-toggle:active,
+button[onclick*="changelog.html"]:active {
+    transform: scale(0.98);
+}
+body.dark-mode #app-container > button[onclick="toggleDarkMode()"],
+body.dark-mode #diagnostics-toggle,
+body.dark-mode button[onclick*="changelog.html"] {
+    background: #334155 !important;
+    color: #f8fafc !important;
+    border-color: #97c6b9 !important;
+}
+body.dark-mode #app-container > button[onclick="toggleDarkMode()"]:hover,
+body.dark-mode #diagnostics-toggle:hover,
+body.dark-mode button[onclick*="changelog.html"]:hover {
+    background: #3e4f66 !important;
+}
+
+/* ===================================================================== */
+/* APPLICATIONS GÉNÉRÉES PAR SFGEN (ajouté automatiquement par SFGEN)      */
+/* Champs pleine largeur, cartes du tableau des essais, cases à cocher.    */
+/* ===================================================================== */
+.full-width { grid-column: 1 / -1 !important; }
+label.checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 1rem; cursor: pointer; font-weight: bold; }
+.essai-card { border: 2px solid #94a3b8; border-radius: 8px; margin-bottom: 15px; background: #f8fafc; overflow: hidden; transition: background-color 0.3s, border-color 0.3s; }
+.essai-card.truck-status-refused { border-color: #dc2626 !important; background-color: #fecaca !important; }
+.essai-card.truck-status-sampled { border-color: #16a34a !important; background-color: #bbf7d0 !important; }
+.essai-card.truck-status-tested { border-color: #0284c7 !important; background-color: #bae6fd !important; }
+body.dark-mode .essai-card { background-color: #172554; border-color: #1e3a8a; }

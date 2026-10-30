@@ -19,8 +19,17 @@
     <script src="../../../shared/libs/pdf-lib.min.js"></script>
     <script src="../../../shared/libs/fontkit.umd.min.js"></script>
 
+    <!-- Spécifications en deux cases (± / @) et valeurs hors spécification dans les camions -->
+    <style>
+        .spec-split { display: flex; align-items: center; gap: 8px; }
+        .spec-split input { flex: 1 1 0; min-width: 0; }
+        .spec-symbol { flex: 0 0 auto; font-size: 1.25rem; font-weight: bold; color: var(--text-main); }
+        body.dark-mode .spec-symbol { color: #f8fafc; }
+        input.hors-spec { border-color: #dc2626 !important; background-color: #fee2e2 !important; color: #991b1b !important; box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.25); }
+        body.dark-mode input.hors-spec { border-color: #f87171 !important; background-color: #450a0a !important; color: #fecaca !important; }
+    </style>
 </head>
-<body>
+<body data-org="eng mtq" data-secteur="ici" data-service="mat">
 
 <div id="app-container">
 
@@ -116,7 +125,7 @@
     </small>
 
     <nav id="form-navigation" style="margin-bottom: 20px;">
-        <button type="button" class="tab-btn" onclick="showTab('tab-form1')">1. Contrôle de bétonnage</button>
+        <button type="button" class="tab-btn active" onclick="showTab('tab-form1')">1. Contrôle de bétonnage</button>
         <button type="button" class="tab-btn" onclick="showTab('tab-form2')">2. Contrôle du béton de ciment</button>
         <button type="button" class="tab-btn" onclick="showTab('tab-form3')">3. Conditions initiales de cure</button>
     </nav>
@@ -413,8 +422,22 @@
         <div class="form-section">
             <h3>Spécifications au devis</h3>
             <div class="input-group"><label>Spécification (n°)</label><input type="text" id="f2-spec-no" placeholder="Ex: 5"></div>
-            <div class="input-group"><label>Affaissement</label><input type="text" id="f2-spec-affaissement" placeholder="Ex: 80 ± 30"></div>
-            <div class="input-group"><label>Teneur en air</label><input type="text" id="f2-spec-air" placeholder="Ex: 5 @ 8"></div>
+            <div class="input-group"><label>Affaissement</label>
+                <div class="spec-split">
+                    <input type="number" id="f2-spec-affaissement-nominal" step="any" inputmode="decimal" placeholder="Ex: 80" aria-label="Affaissement visé">
+                    <span class="spec-symbol">±</span>
+                    <input type="number" id="f2-spec-affaissement-tolerance" step="any" inputmode="decimal" placeholder="Ex: 30" aria-label="Tolérance">
+                </div>
+                <input type="hidden" id="f2-spec-affaissement">
+            </div>
+            <div class="input-group"><label>Teneur en air</label>
+                <div class="spec-split">
+                    <input type="number" id="f2-spec-air-min" step="any" inputmode="decimal" placeholder="Ex: 5" aria-label="Teneur en air minimale">
+                    <span class="spec-symbol">@</span>
+                    <input type="number" id="f2-spec-air-max" step="any" inputmode="decimal" placeholder="Ex: 8" aria-label="Teneur en air maximale">
+                </div>
+                <input type="hidden" id="f2-spec-air">
+            </div>
             <div class="input-group"><label>Résistance</label><input type="text" id="f2-spec-resistance" placeholder="Ex: 35 MPa"></div>
             <div class="input-group"><label>Granulats</label><input type="text" id="f2-spec-granulat" placeholder="Ex: 5-20"></div>
         </div>

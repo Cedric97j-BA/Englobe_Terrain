@@ -1089,9 +1089,9 @@ body.dark-mode {
     --card-strip: linear-gradient(90deg, var(--org-eng) 0 33.3%, var(--org-mtq) 33.3% 66.6%, var(--org-hdq) 66.6% 100%);
 }
 
-/* --- 3. Boutons utilitaires du Hub (mode nuit, diagnostics, historique) --
-   Même apparence pour les trois (styles écrits dans le HTML remplacés). */
-#app-container > button[onclick="toggleDarkMode()"],
+/* --- 3. Boutons utilitaires du Hub (diagnostic, historique) ------------
+   Même apparence pour les deux (styles écrits dans le HTML remplacés).
+   Le Mode nuit est un petit interrupteur dans l'en-tête (bloc APPS HORS LIGNE). */
 #diagnostics-toggle,
 button[onclick*="changelog.html"] {
     background: #1e293b !important;
@@ -1107,25 +1107,21 @@ button[onclick*="changelog.html"] {
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
     transition: background-color 0.15s, box-shadow 0.15s, transform 0.1s;
 }
-#app-container > button[onclick="toggleDarkMode()"]:hover,
 #diagnostics-toggle:hover,
 button[onclick*="changelog.html"]:hover {
     background: #2b3a52 !important;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
 }
-#app-container > button[onclick="toggleDarkMode()"]:active,
 #diagnostics-toggle:active,
 button[onclick*="changelog.html"]:active {
     transform: scale(0.98);
 }
-body.dark-mode #app-container > button[onclick="toggleDarkMode()"],
 body.dark-mode #diagnostics-toggle,
 body.dark-mode button[onclick*="changelog.html"] {
     background: #334155 !important;
     color: #f8fafc !important;
     border-color: #97c6b9 !important;
 }
-body.dark-mode #app-container > button[onclick="toggleDarkMode()"]:hover,
 body.dark-mode #diagnostics-toggle:hover,
 body.dark-mode button[onclick*="changelog.html"]:hover {
     background: #3e4f66 !important;
@@ -1133,7 +1129,8 @@ body.dark-mode button[onclick*="changelog.html"]:hover {
 
 /* ===================================================================== */
 /* APPLICATIONS GÉNÉRÉES PAR SFGEN (ajouté automatiquement par SFGEN)      */
-/* Champs pleine largeur, cartes du tableau des essais, cases à cocher.    */
+/* Champs pleine largeur, cartes du tableau des essais, cases à cocher,   */
+/* champs Date / Heure à la même taille que les autres sur iPhone / iPad. */
 /* ===================================================================== */
 .full-width { grid-column: 1 / -1 !important; }
 label.checkbox-label { display: flex; align-items: center; gap: 10px; font-size: 1rem; cursor: pointer; font-weight: bold; }
@@ -1142,3 +1139,140 @@ label.checkbox-label { display: flex; align-items: center; gap: 10px; font-size:
 .essai-card.truck-status-sampled { border-color: #16a34a !important; background-color: #bbf7d0 !important; }
 .essai-card.truck-status-tested { border-color: #0284c7 !important; background-color: #bae6fd !important; }
 body.dark-mode .essai-card { background-color: #172554; border-color: #1e3a8a; }
+/* Date / Heure : sur iPad (plus large que 820 px), Safari dessinait ces champs à sa façon :
+   plus gros que les champs voisins et débordant de leur case. Même règle partout. */
+input[type="date"], input[type="time"] { -webkit-appearance: none; appearance: none; min-width: 0; }
+input[type="date"]::-webkit-date-and-time-value, input[type="time"]::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.grid-2 > .input-group { min-width: 0; }
+/* FIN DU BLOC SFGEN : APPLICATIONS GÉNÉRÉES PAR SFGEN */
+
+/* ===================================================================== */
+/* EN-TÊTES DES APPS AUX COULEURS DE LEUR CARTE DU HUB (ajouté par SFGEN)  */
+/* SFGEN écrit <body data-org="..."> dans chaque app (génération et        */
+/* bouton « Mettre à jour les liens du Hub »). Sans data-org : vert        */
+/* Englobe comme avant. Mêmes couleurs que les cartes, en jour et en nuit. */
+/* ===================================================================== */
+body[data-org] { --app-header-bg: var(--org-gen); }
+body[data-org="eng"] { --app-header-bg: var(--org-eng); }
+body[data-org="mtq"] { --app-header-bg: var(--org-mtq); }
+body[data-org="hdq"] { --app-header-bg: var(--org-hdq); }
+body[data-org~="eng"][data-org~="mtq"] {
+    --app-header-bg: linear-gradient(135deg, var(--org-eng) 0%, var(--org-eng) 38%, var(--org-mtq) 62%, var(--org-mtq) 100%);
+}
+body[data-org~="eng"][data-org~="hdq"] {
+    --app-header-bg: linear-gradient(135deg, var(--org-eng) 0%, var(--org-eng) 38%, var(--org-hdq) 62%, var(--org-hdq) 100%);
+}
+body[data-org~="mtq"][data-org~="hdq"] {
+    --app-header-bg: linear-gradient(135deg, var(--org-mtq) 0%, var(--org-mtq) 38%, var(--org-hdq) 62%, var(--org-hdq) 100%);
+}
+body[data-org~="eng"][data-org~="mtq"][data-org~="hdq"] {
+    --app-header-bg: linear-gradient(135deg, var(--org-eng) 0%, var(--org-eng) 28%, var(--org-mtq) 42%, var(--org-mtq) 58%, var(--org-hdq) 72%, var(--org-hdq) 100%);
+}
+body[data-org] header[style],
+body.dark-mode[data-org] header[style] {
+    background: var(--app-header-bg) !important;
+}
+/* FIN DU BLOC SFGEN : EN-TÊTES DES APPS AUX COULEURS */
+
+/* ===================================================================== */
+/* APPS HORS LIGNE DU HUB, DIAGNOSTIC ET MODE NUIT (ajouté par SFGEN)      */
+/* Panneau sous les filtres + bouton « Garder hors ligne » sur chaque      */
+/* carte (shared/js/hub_hors_ligne.js), panneau du diagnostic et petit     */
+/* interrupteur Mode nuit dans l'en-tête du Hub.                           */
+/* ===================================================================== */
+.hl-panel { margin: -10px 0 25px; padding: 14px 16px; border-radius: 8px; background-color: var(--bg-card); box-shadow: 0 2px 5px rgba(0,0,0,0.05); border-left: 5px solid #97c6b9; }
+.hl-panel.hl-inactif { padding: 10px 16px; border-left-color: #94a3b8; }
+.hl-panel.hl-inactif .hl-head { margin-bottom: 0; }
+.hl-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin-bottom: 10px; }
+.hl-title { font-size: 1rem; color: var(--text-main); }
+.hl-status { font-size: 0.9rem; color: var(--text-muted); }
+.hl-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.hl-actions[hidden] { display: none; }
+.hl-btn { padding: 8px 16px; border-radius: 999px; border: 2px solid #94a3b8; background: transparent; color: var(--text-main); font-weight: 600; font-size: 0.85rem; cursor: pointer; }
+.hl-btn:disabled { opacity: 0.45; cursor: default; }
+.hl-btn.hl-primary { border-color: #73968c; background-color: #97c6b9; color: #0f172a; }
+.hl-btn.hl-danger { border-color: #fca5a5; color: #b91c1c; }
+.hl-btn[aria-pressed="true"] { border-color: #73968c; background-color: color-mix(in srgb, #97c6b9 35%, transparent); }
+.hl-progress { position: relative; margin-top: 10px; height: 22px; border-radius: 999px; background-color: #e2e8f0; overflow: hidden; }
+.hl-bar { height: 100%; width: 0; background-color: #97c6b9; transition: width 0.2s; }
+.hl-progress span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 0.78rem; font-weight: 600; color: #0f172a; }
+.hl-note { margin: 8px 0 0; font-size: 0.82rem; color: var(--text-muted); }
+.hl-note:empty { display: none; }
+
+.app-card[data-org] { position: relative; }
+.hl-toggle { align-self: center; margin-top: 2px; padding: 5px 14px; border-radius: 999px; font-size: 0.78rem; font-weight: 700; line-height: 1.3; cursor: pointer; color: #334155; background-color: rgba(255, 255, 255, 0.85); border: 1px solid rgba(15, 23, 42, 0.18); }
+.hl-toggle:hover { background-color: #ffffff; }
+.hl-toggle[aria-pressed="true"] { color: #ffffff; background-color: #3f7a69; border-color: #3f7a69; }
+.hl-occupe .hl-toggle { pointer-events: none; opacity: 0.8; }
+.hl-hors-ligne .hl-toggle[aria-pressed="false"] { display: none; }
+.app-card.hl-indisponible { opacity: 0.45; filter: grayscale(70%); }
+.app-card.hl-indisponible::after { content: "Non disponible hors ligne"; position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); padding: 3px 10px; border-radius: 999px; font-size: 0.72rem; font-weight: 700; white-space: nowrap; color: #ffffff; background-color: #475569; }
+.hl-seulement .app-card[data-org]:not(.hl-garde) { display: none !important; }
+
+body.dark-mode .hl-panel { background-color: #1e293b; }
+body.dark-mode .hl-title { color: #f1f5f9; }
+body.dark-mode .hl-btn { color: #e2e8f0; border-color: #64748b; }
+body.dark-mode .hl-btn.hl-primary { color: #0f172a; border-color: #97c6b9; }
+body.dark-mode .hl-btn.hl-danger { color: #fca5a5; border-color: #7f1d1d; }
+body.dark-mode .hl-progress { background-color: #334155; }
+body.dark-mode .hl-toggle { color: #e2e8f0; background-color: rgba(15, 23, 42, 0.75); border-color: rgba(148, 163, 184, 0.4); }
+body.dark-mode .hl-toggle[aria-pressed="true"] { color: #0f172a; background-color: #97c6b9; border-color: #97c6b9; }
+
+/* --- Diagnostic de l'appareil (bouton « Afficher le diagnostic ») --- */
+#diagnostics-panel.hub-diag { max-width: 760px; margin: 14px auto 0; padding: 16px; text-align: left; white-space: normal; border-radius: 10px; background-color: var(--bg-card); color: var(--text-main); border-left: 5px solid #97c6b9; box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08); font-size: 0.9rem; }
+#diagnostics-panel.hub-diag[hidden] { display: none; }
+.hd-wait { margin: 0; color: var(--text-muted); }
+.hd-tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.hd-tile { padding: 10px 12px; border-radius: 8px; background-color: #f1f5f9; border-top: 3px solid #cbd5e1; }
+.hd-tile small { display: block; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); }
+.hd-tile strong { display: block; margin-top: 4px; font-size: 1rem; color: var(--text-main); }
+.hd-tile span { display: block; margin-top: 2px; font-size: 0.78rem; color: var(--text-muted); }
+.hd-tile.hd-ok { border-top-color: #3f7a69; }
+.hd-tile.hd-warn { border-top-color: #d97706; }
+.hd-tile.hd-bad { border-top-color: #dc2626; }
+.hd-alert { margin: 0 0 12px; padding: 8px 12px; border-radius: 8px; font-weight: 600; color: #991b1b; background-color: #fee2e2; }
+.hd-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+.hd-table th { padding: 6px 8px; text-align: left; font-size: 0.72rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--text-muted); border-bottom: 2px solid #e2e8f0; }
+.hd-table td { padding: 7px 8px; vertical-align: middle; border-bottom: 1px solid #e2e8f0; color: var(--text-main); }
+.hd-table .hd-num { text-align: right; white-space: nowrap; }
+.hd-table .hd-date { white-space: nowrap; }
+.hd-table small { color: var(--text-muted); }
+.hd-table tr.hd-other td { font-style: italic; }
+.hd-pill { display: inline-block; padding: 2px 9px; border-radius: 999px; font-size: 0.76rem; font-weight: 700; white-space: nowrap; color: #475569; background-color: #e2e8f0; }
+.hd-pill.hd-ok { color: #ffffff; background-color: #3f7a69; }
+.hd-pill.hd-warn { color: #78350f; background-color: #fde68a; }
+.hd-pill.hd-bad { color: #ffffff; background-color: #dc2626; }
+.hd-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.hd-tech { margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); }
+.hd-tech summary { cursor: pointer; }
+.hd-tech pre { margin: 8px 0 0; padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; word-break: break-word; font-size: 0.75rem; background-color: #f1f5f9; }
+@media (max-width: 520px) {
+    .hd-table .hd-date { display: none; }
+}
+body.dark-mode #diagnostics-panel.hub-diag { background-color: #1e293b; color: #e2e8f0; }
+body.dark-mode .hd-tile, body.dark-mode .hd-tech pre { background-color: #0f172a; }
+body.dark-mode .hd-tile strong, body.dark-mode .hd-table td { color: #f1f5f9; }
+body.dark-mode .hd-table th, body.dark-mode .hd-table td { border-color: #334155; }
+body.dark-mode .hd-pill { color: #e2e8f0; background-color: #334155; }
+body.dark-mode .hd-pill.hd-ok { color: #0f172a; background-color: #97c6b9; }
+body.dark-mode .hd-alert { color: #fecaca; background-color: #450a0a; }
+
+/* --- Mode nuit : petit interrupteur dans l'en-tête du Hub --- */
+.hub-theme-toggle { margin-left: auto; flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px 6px 7px; border-radius: 999px; border: 1px solid rgba(255, 255, 255, 0.6); background: rgba(15, 23, 42, 0.14); color: #ffffff; font: inherit; font-size: 0.85rem; font-weight: 600; line-height: 1; cursor: pointer; transition: background-color 0.15s; }
+.hub-theme-toggle:hover { background: rgba(15, 23, 42, 0.26); }
+.hub-theme-switch { position: relative; flex-shrink: 0; width: 32px; height: 18px; border-radius: 999px; background-color: rgba(255, 255, 255, 0.45); transition: background-color 0.2s; }
+.hub-theme-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background-color: #ffffff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3); transition: transform 0.2s; }
+body.dark-mode .hub-theme-switch { background-color: #1e293b; }
+body.dark-mode .hub-theme-switch::after { transform: translateX(14px); }
+/* En-tête empilé (≤ 820 px) : coin bas droit, à la hauteur de « Accueil », sans ligne de plus */
+@media (max-width: 820px) {
+    @supports selector(:has(*)) {
+        header:has(> .hub-theme-toggle) { position: relative; }
+        .hub-theme-toggle { position: absolute; right: 12px; bottom: 12px; margin: 0; }
+    }
+}
+@media (max-width: 600px) {
+    .hub-theme-toggle { padding: 6px 7px; }
+    .hub-theme-label { display: none; }
+}
+/* FIN DU BLOC SFGEN : APPS HORS LIGNE DU HUB */

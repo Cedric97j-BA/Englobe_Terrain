@@ -2102,3 +2102,120 @@ async function exportToPDF() {
 } 
 
 */
+
+// ========================================================================== //
+// SPÉCIFICATIONS AFFAISSEMENT ± / AIR @ (deux cases) ET CONTRÔLE DES CAMIONS  //
+// ========================================================================== //
+// Onglet 2 : « 80 » ± « 30 » et « 5 » @ « 8 » en deux cases ; le texte complet
+// (« 80 ± 30 », « 5 @ 8 ») est gardé dans les champs cachés f2-spec-affaissement
+// et f2-spec-air : c'est lui qui est sauvegardé et exporté dans le PDF (formulaire 2).
+// Camions : la case Air 1/2 ou Affaissement 1/2 devient rouge si la valeur est hors
+// spécification (bornes incluses). « √ SP » coché : pas de rouge pour cet affaissement.
+// La couleur de la carte et « Camion refusé » ne changent pas.
+
+const SPEC_PARTS = {
+    'f2-spec-affaissement': { a: 'f2-spec-affaissement-nominal', b: 'f2-spec-affaissement-tolerance', symbol: '±',
+                              parse: /(-?\d+(?:[.,]\d+)?)\s*(?:±|\+\s*\/?\s*-|\+-)\s*(\d+(?:[.,]\d+)?)/ },
+    'f2-spec-air':          { a: 'f2-spec-air-min', b: 'f2-spec-air-max', symbol: '@',
+                              parse: /(\d+(?:[.,]\d+)?)\s*(?:@|à|–|-)\s*(\d+(?:[.,]\d+)?)/ }
+};
+
+function specNumber(v) {
+    const n = parseFloat(String(v ?? '').replace(',', '.'));
+    return isNaN(n) ? null : n;
+}
+
+// Cases visibles -> texte complet caché (virgule décimale comme sur le formulaire papier)
+function composeSpec(hiddenId) {
+    const p = SPEC_PARTS[hiddenId];
+    const a = document.getElementById(p.a), b = document.getElementById(p.b), hidden = document.getElementById(hiddenId);
+    if (!a || !b || !hidden) return;
+    const fmt = v => String(v).trim().replace('.', ',');
+    const va = a.value.trim(), vb = b.value.trim();
+    hidden.value = va && vb ? `${fmt(va)} ${p.symbol} ${fmt(vb)}` : (va || vb ? fmt(va || vb) : '');
+}
+
+// Anciens rapports (« 80 +- 30 », « 5 @ 8 ») : on remplit les deux cases à partir du texte complet
+function splitSpecsFromHidden() {
+    Object.entries(SPEC_PARTS).forEach(([hiddenId, p]) => {
+        const a = document.getElementById(p.a), b = document.getElementById(p.b), hidden = document.getElementById(hiddenId);
+        if (!a || !b || !hidden) return;
+        if ((a.value || b.value) || !hidden.value) { composeSpec(hiddenId); return; }
+        const m = hidden.value.match(p.parse);
+        if (m) {
+            a.value = m[1].replace(',', '.');
+            b.value = m[2].replace(',', '.');
+        } else {
+            const single = specNumber(hidden.value);
+            if (single !== null) a.value = single;
+        }
+        composeSpec(hiddenId); // « 100 +- 20 » devient « 100 ± 20 » dans le PDF
+    });
+}
+
+function specRanges() {
+    const nominal = specNumber(document.getElementById('f2-spec-affaissement-nominal')?.value);
+    const tolerance = specNumber(document.getElementById('f2-spec-affaissement-tolerance')?.value);
+    const airMin = specNumber(document.getElementById('f2-spec-air-min')?.value);
+    const airMax = specNumber(document.getElementById('f2-spec-air-max')?.value);
+    return {
+        slump: (nominal !== null && tolerance !== null) ? [nominal - Math.abs(tolerance), nominal + Math.abs(tolerance)] : null,
+        air: (airMin !== null && airMax !== null) ? [Math.min(airMin, airMax), Math.max(airMin, airMax)] : null
+    };
+}
+
+function markSpec(input, range, exempt) {
+    if (!input) return;
+    const v = specNumber(input.value);
+    const out = !exempt && range && v !== null && (v < range[0] || v > range[1]);
+    input.classList.toggle('hors-spec', !!out);
+    input.title = out ? `Hors spécification (${String(range[0]).replace('.', ',')} à ${String(range[1]).replace('.', ',')})` : '';
+}
+
+function checkTruckSpecs(card, ranges = specRanges()) {
+    markSpec(card.querySelector('.truck-air1'), ranges.air, false);
+    markSpec(card.querySelector('.truck-air2'), ranges.air, false);
+    markSpec(card.querySelector('.truck-slump1'), ranges.slump, card.querySelector('.truck-slump1-sp')?.checked);
+    markSpec(card.querySelector('.truck-slump2'), ranges.slump, card.querySelector('.truck-slump2-sp')?.checked);
+}
+
+function checkAllTruckSpecs() {
+    const ranges = specRanges();
+    document.querySelectorAll('.truck-card').forEach(card => checkTruckSpecs(card, ranges));
+}
+
+document.addEventListener('input', e => {
+    const t = e.target;
+    const hiddenId = Object.keys(SPEC_PARTS).find(id => t.id === SPEC_PARTS[id].a || t.id === SPEC_PARTS[id].b);
+    if (hiddenId) {
+        composeSpec(hiddenId);
+        checkAllTruckSpecs();
+    } else if (t.matches && t.matches('.truck-air1, .truck-air2, .truck-slump1, .truck-slump2')) {
+        const card = t.closest('.truck-card');
+        if (card) checkTruckSpecs(card);
+    }
+});
+
+document.addEventListener('change', e => {
+    if (e.target.matches && e.target.matches('.truck-slump1-sp, .truck-slump2-sp')) {
+        const card = e.target.closest('.truck-card');
+        if (card) checkTruckSpecs(card);
+    }
+});
+
+// Après un chargement de rapport, un « Nouveau » ou un camion ajouté : cases de spécification et rouge à jour
+(function () {
+    const wrap = (name, after) => {
+        const original = window[name];
+        if (typeof original !== 'function') return;
+        window[name] = function (...args) {
+            const result = original.apply(this, args);
+            after();
+            return result;
+        };
+    };
+    wrap('loadReport', () => { splitSpecsFromHidden(); checkAllTruckSpecs(); });
+    wrap('clearForm', () => { checkAllTruckSpecs(); });
+    wrap('addTruck', () => { checkAllTruckSpecs(); });
+    document.addEventListener('DOMContentLoaded', () => { splitSpecsFromHidden(); checkAllTruckSpecs(); });
+})();

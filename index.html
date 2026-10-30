@@ -23,11 +23,11 @@
             <h1 style="margin: 0; font-size: 1.5rem; letter-spacing: 0.5px;">Formulaires de chantier</h1>
             <div><span style="font-size: 0.95rem; font-weight: bold; background: #73968c; padding: 3px 10px; border-radius: 12px;">Accueil</span></div>
         </div>
+        <button type="button" id="dark-mode-toggle" class="hub-theme-toggle" onclick="toggleDarkMode()" aria-pressed="false" title="Mode nuit">
+            <span class="hub-theme-switch" aria-hidden="true"></span>
+            <span class="hub-theme-label">Mode nuit</span>
+        </button>
     </header>
-
-    <button onclick="toggleDarkMode()" style="text-align: center; margin-left: auto; margin-right: auto;background: #1e293b; color: white; border: 1px solid #cbd5e1; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
-    🌙 Activer/Désactiver le Mode Nuit
-    </button>
 
     <h2 class="hub-heading">Sélectionnez un formulaire :</h2>
 
@@ -293,21 +293,20 @@
 </div>
 
 <div>
-    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v0.4.0.9</span>
+    <span id="app-version" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; font-size: 0.95rem; font-weight: bold; padding: 3px 10px; border-radius: 12px; ">v0.4.3.0</span>
 </div>
 
 <div style="text-align: center; margin: 12px auto 24px;">
-    <button id="diagnostics-toggle" type="button" onclick="toggleDiagnostics()" style="background: #64748b; color: white; padding: 8px 14px; border-radius: 6px; border: none; cursor: pointer;">
-        Afficher l'état hors ligne et les diagnostics
-    </button>
-    <div id="diagnostics-panel" hidden style="max-width: 620px; margin: 12px auto 0; padding: 12px; text-align: left; background: #f1f5f9; color: #334155; border-radius: 6px; font-size: 0.9rem; white-space: pre-line;"></div>
+    <button id="diagnostics-toggle" type="button" onclick="toggleDiagnostics()">Afficher le diagnostic</button>
+    <!-- Diagnostic de l'appareil : rempli par shared/js/hub_hors_ligne.js (géré par SFGEN) -->
+    <div id="diagnostics-panel" class="hub-diag" hidden></div>
     <button onclick="window.location.href='changelog.html'" style="margin-top: 10px; font-size: 0.9em; padding: 8px 15px; opacity: 0.8;">
-    🕒 Historique des mises à jour
+    Historique des mises à jour
     </button>
 </div>
  
 <script>
-    const APP_VERSION = 'v0.4.0.9';
+    const APP_VERSION = 'v0.4.3.0';
 
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
@@ -316,96 +315,8 @@
         });
     }
 
-    async function toggleDiagnostics() {
-        const panel = document.getElementById('diagnostics-panel');
-        const button = document.getElementById('diagnostics-toggle');
-        if (!panel || !button) return;
-
-        if (!panel.hidden) {
-            panel.hidden = true;
-            button.textContent = "Afficher l'état hors ligne et les diagnostics";
-            return;
-        }
-
-        panel.hidden = false;
-        button.textContent = "Masquer l'état hors ligne et les diagnostics";
-        panel.textContent = "Vérification de l'état de l'application...";
-
-        const lines = [
-            `Version de l'application : ${APP_VERSION}`,
-            `Connexion réseau : ${navigator.onLine ? "En ligne" : "Hors ligne"}`,
-            `Service Worker : ${'serviceWorker' in navigator ? "Disponible" : "Non disponible"}`
-        ];
-
-        if ('serviceWorker' in navigator) {
-            const registration = await navigator.serviceWorker.getRegistration();
-            lines.push(`Service Worker actif : ${registration && registration.active ? registration.active.state : "Non actif"}`);
-            lines.push(`Page contrôlée : ${navigator.serviceWorker.controller ? "Oui" : "Non"}`);
-        }
-
-        if ('caches' in window) {
-            const cacheNames = await caches.keys();
-            lines.push(`Caches disponibles : ${cacheNames.length ? cacheNames.join(", ") : "Aucun"}`);
-            const appCacheName = cacheNames.find((name) => name.startsWith('hub-inspection-'));
-            if (appCacheName) {
-                const appCache = await caches.open(appCacheName);
-                lines.push(`Fichiers en cache : ${(await appCache.keys()).length}`);
-            } else {
-                lines.push("Fichiers en cache : Aucun cache de l'application");
-            }
-        }
-
-        const reportConfigs = [
-            ["Rapports béton", ["englobe_"]],
-            ["Rapports coulis", ["COULIS_"]],
-            ["Rapports pavage", ["PAVAGE_"]],
-            ["Rapports compactage", ["compactage_"]],
-            ["Rapports planche", ["planche_"]],
-            ["Rapports échantillonnage", ["echsolgra_"]]
-        ];
-
-        reportConfigs.forEach(([label, prefixes]) => {
-            let count = 0;
-            for (let i = 0; i < localStorage.length; i += 1) {
-                const key = localStorage.key(i);
-                if (!key) continue;
-                
-                if (prefixes.some((prefix) => key.startsWith(prefix))) {
-                    count += 1;
-                    continue;
-                }
-                
-                if (key.startsWith("ID_")) {
-                    try {
-                        const report = JSON.parse(localStorage.getItem(key));
-                        if (report && typeof report.displayName === "string") {
-                            // Vérification spécifique selon le type de rapport dans le nom d'affichage
-                            const name = report.displayName;
-                            if (label === "Rapports béton" && name.includes("_CONC-") === false && name.includes("_COULIS_") === false) count += 1;
-                            else if (label === "Rapports coulis" && name.includes("_COULIS_")) count += 1;
-                            else if (label === "Rapports pavage" && name.includes("PAVAGE")) count += 1;
-                            else if (prefixes.some((prefix) => name.startsWith(prefix))) count += 1;
-                        }
-                    } catch (error) {
-                        console.warn("Rapport ignoré dans le diagnostic", key, error);
-                    }
-                }
-            }
-            lines.push(`${label} : ${count}`);
-        });
-
-        if (navigator.storage && navigator.storage.estimate) {
-            const estimate = await navigator.storage.estimate();
-            const usedMb = ((estimate.usage || 0) / 1024 / 1024).toFixed(2);
-            const quotaMb = estimate.quota ? (estimate.quota / 1024 / 1024).toFixed(0) : "?";
-            lines.push(`Stockage local utilisé : ${usedMb} Mo / ${quotaMb} Mo`);
-            if (estimate.quota && estimate.usage / estimate.quota >= 0.8) {
-                lines.push("AVERTISSEMENT : le stockage local dépasse 80 % de la capacité estimée.");
-            }
-        }
-
-        panel.textContent = lines.join("\n");
-    }
+    // toggleDiagnostics() (bouton « Afficher le diagnostic ») : voir shared/js/hub_hors_ligne.js,
+    // géré par SFGEN (apps gardées, rapports sauvegardés par app, stockage, mise à jour).
 
     async function forceAppUpdate() {
     if (!navigator.onLine) {
@@ -498,6 +409,8 @@
         if (localStorage.getItem('darkMode') === 'enabled') {
             document.body.classList.add('dark-mode');
         }
+        const themeToggle = document.getElementById('dark-mode-toggle');
+        if (themeToggle) themeToggle.setAttribute('aria-pressed', document.body.classList.contains('dark-mode'));
         const updateResult = sessionStorage.getItem('updateResult');
         if (updateResult) {
             sessionStorage.removeItem('updateResult');
@@ -515,6 +428,8 @@
         
         // Sauvegarde le choix dans la tablette
         localStorage.setItem('darkMode', isDark ? 'enabled' : 'disabled');
+        const themeToggle = document.getElementById('dark-mode-toggle');
+        if (themeToggle) themeToggle.setAttribute('aria-pressed', isDark);
         
         // Si vous avez gardé la fonction Toast, on peut l'utiliser !
         if (typeof showToast === "function") {
@@ -650,5 +565,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 </script>
 
+<script src="shared/js/hub_hors_ligne.js"></script>
 </body>
 </html>

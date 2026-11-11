@@ -136,27 +136,120 @@ function updateTruckHeader(inputElement) {
     }
 } */
 
-// Fonction pour afficher le numéro, bordereau et échantillon dans l'en-tête
-function updateTruckHeader(element) {
-    const card = element.closest('.truck-card');
-    if (!card) return;
-    
-    const truckId = card.querySelector('.truck-id').value || '---';
-    const bordereau = card.querySelector('.truck-bordereau').value || '---';
-    const summary = card.querySelector('.truck-header-summary');
-    
-    // Vérifier l'échantillon
-    const isSampled = card.querySelector('.truck-sample-check').checked;
-    const sampleNum = card.querySelector('.truck-sample-num').value || '---';
-    
-    if (summary) {
-        let texte = `| Camion: ${truckId} | Bordereau: ${bordereau}`;
-        if (isSampled) {
-            texte += ` | Éch: ${sampleNum}`;
-        }
-        summary.textContent = texte;
-    }
+// En-tête de chaque camion : pastilles Camion / Bordereau / Éch. et volume cumulé « Cum: 8-16 m³ ».
+// Le cumul se recalcule en cascade du camion 1 au dernier dès qu'un volume change (même règle que le PDF :
+// un camion refusé n'entre pas dans le cumul).
+function formatVolume(v) {
+    return String(Math.round(v * 10) / 10).replace('.', ',');
 }
+
+function truckHeaderPill(text, extraClass = '') {
+    const pill = document.createElement('span');
+    pill.className = `truck-pill ${extraClass}`.trim();
+    pill.textContent = text;
+    return pill;
+}
+
+function refreshTruckHeaders() {
+    let cumul = 0;
+    document.querySelectorAll('.truck-card').forEach(card => {
+        const summary = card.querySelector('.truck-header-summary');
+        if (!summary) return;
+        const volRaw = card.querySelector('.truck-volume')?.value || '';
+        const vol = parseFloat(volRaw.replace(',', '.'));
+        const isRefused = card.querySelector('.truck-refuse')?.checked;
+        let cumText = 'Cum: —';
+        if (!isNaN(vol)) {
+            if (isRefused) {
+                cumText = `Cum: ${formatVolume(vol)} m³ (refusé)`;
+            } else {
+                cumul += vol;
+                cumText = `Cum: ${formatVolume(vol)}-${formatVolume(cumul)} m³`;
+            }
+        }
+
+        summary.replaceChildren();
+        summary.appendChild(truckHeaderPill(`Camion ${card.querySelector('.truck-id')?.value || '---'}`));
+        summary.appendChild(truckHeaderPill(`Bordereau ${card.querySelector('.truck-bordereau')?.value || '---'}`));
+        if (card.querySelector('.truck-sample-check')?.checked) {
+            summary.appendChild(truckHeaderPill(`Éch. ${card.querySelector('.truck-sample-num')?.value || '---'}`));
+        }
+        summary.appendChild(truckHeaderPill(cumText, isRefused && !isNaN(vol) ? 'truck-pill-cum truck-pill-refused' : 'truck-pill-cum'));
+    });
+}
+
+// Gardée pour les appels existants (oninput des champs Camion / Bordereau / Éch.)
+function updateTruckHeader(element) {
+    refreshTruckHeaders();
+}
+
+// Délai de déchargement : Heure max fin = chargement + 2h00 + temps de retardant du camion
+const UNLOADING_BASE_MIN = 120;
+
+function timeToMinutes(value) {
+    const m = /^(\d{1,2}):(\d{2})/.exec(value || '');
+    return m ? parseInt(m[1], 10) * 60 + parseInt(m[2], 10) : null;
+}
+
+function minutesToTime(total) {
+    const m = ((total % 1440) + 1440) % 1440;
+    return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+}
+
+// « 0 », « 30 », « 30 min », « 1h », « 1h30 », « 1 h 30 », « 1:30 », « 1,5 h » -> minutes ; null si illisible.
+// Un nombre seul est en minutes ; un nombre décimal seul (« 1,5 ») est en heures.
+function parseRetarder(value) {
+    const s = String(value || '').trim().toLowerCase().replace(',', '.');
+    if (!s) return 0;
+    let m = /^(\d+(?:\.\d+)?)\s*(?:h|hr|hrs|heures?)\s*(\d{1,2})?\s*(?:min|mn|m)?$/.exec(s);
+    if (m) return Math.round(parseFloat(m[1]) * 60) + (m[2] ? parseInt(m[2], 10) : 0);
+    m = /^(\d{1,2}):(\d{2})$/.exec(s);
+    if (m) return parseInt(m[1], 10) * 60 + parseInt(m[2], 10);
+    m = /^(\d+)\s*(?:min|mn|m)?$/.exec(s);
+    if (m) return parseInt(m[1], 10);
+    m = /^(\d+\.\d+)$/.exec(s);
+    if (m) return Math.round(parseFloat(m[1]) * 60);
+    return null;
+}
+
+function checkTruckUnloading(card) {
+    const label = card.querySelector('.max-time-label');
+    const endInput = card.querySelector('.truck-time-end');
+    const retInput = card.querySelector('.truck-retarder');
+    if (!label || !endInput) return;
+    const retarder = parseRetarder(retInput?.value);
+    if (retInput) {
+        retInput.classList.toggle('retard-illisible', retarder === null);
+        retInput.title = retarder === null ? 'Format non reconnu (ex. 30 min, 1h00, 1h30)' : '';
+    }
+    const mix = timeToMinutes(card.querySelector('.truck-time-mix')?.value);
+    if (mix === null) {
+        label.textContent = '';
+        label.classList.remove('depasse');
+        endInput.classList.remove('hors-delai');
+        return;
+    }
+    const maxEnd = mix + UNLOADING_BASE_MIN + (retarder || 0);
+    const end = timeToMinutes(endInput.value);
+    // Passage à minuit : une fin plus tôt que le chargement est le lendemain
+    const over = end !== null && (end < mix ? end + 1440 : end) > maxEnd;
+    label.textContent = over ? `(⚠️ Max dépassé : ${minutesToTime(maxEnd)})` : `(Max : ${minutesToTime(maxEnd)})`;
+    label.classList.toggle('depasse', over);
+    endInput.classList.toggle('hors-delai', over);
+}
+
+function checkAllTruckUnloading() {
+    document.querySelectorAll('.truck-card').forEach(checkTruckUnloading);
+}
+
+['input', 'change'].forEach(eventType => {
+    document.addEventListener(eventType, e => {
+        if (e.target.matches && e.target.matches('.truck-time-mix, .truck-retarder, .truck-time-end')) {
+            const card = e.target.closest('.truck-card');
+            if (card) checkTruckUnloading(card);
+        }
+    });
+});
 
 function updateTruckColor(card) {
     const isRefused = card.querySelector('.truck-refuse') && card.querySelector('.truck-refuse').checked;
@@ -382,6 +475,7 @@ function calculateTotals() {
     document.getElementById('f2-total-coulee').value = totalCoulee.toFixed(1);
     document.getElementById('f2-total-refuse').value = totalRefuse.toFixed(1);
     document.getElementById('f2-total-verifie').value = totalVerifie.toFixed(1);
+    refreshTruckHeaders(); // Cumul en cascade dans l'en-tête de chaque camion
 }
 
 function syncForm3UI() {
@@ -749,7 +843,7 @@ function loadReport() {
         return;
     }
 
-    const reportDataStr = localStorage.getItem(selectedKey);
+    const reportDataStr = readStoredReport(selectedKey);
     if (!reportDataStr) return;
 
     clearForm();
@@ -798,6 +892,9 @@ function loadReport() {
             card.querySelector('.truck-bordereau').value = truckInfo.bordereau || '';
             card.querySelector('.truck-volume').value = truckInfo.volume || '';
             card.querySelector('.truck-time-mix').value = truckInfo.timeMix || '';
+            if (card.querySelector('.truck-retarder')) card.querySelector('.truck-retarder').value = truckInfo.retarder || '';
+            if (card.querySelector('.truck-mtq-air-pompage')) card.querySelector('.truck-mtq-air-pompage').value = truckInfo.mtqAirPompage || '';
+            if (card.querySelector('.truck-mtq-aff-pompage')) card.querySelector('.truck-mtq-aff-pompage').value = truckInfo.mtqAffPompage || '';
             card.querySelector('.truck-time-start').value = truckInfo.timeStart || '';
             card.querySelector('.truck-time-end').value = truckInfo.timeEnd || '';
             card.querySelector('.truck-water').value = truckInfo.water || '';
@@ -918,7 +1015,7 @@ function saveReport(isDuplicate = false) {
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
         
         // Création de l'identifiant unique invisible
-        saveKey = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'ID_' + generateReportId();
     } else {
         // 3. C'EST UNE MISE À JOUR : on garde le nom choisi par l'utilisateur,
         //    mais si le nom est encore celui généré automatiquement, on le met à jour
@@ -974,6 +1071,9 @@ function saveReport(isDuplicate = false) {
             bordereau: card.querySelector('.truck-bordereau').value,
             volume: fixZero(card.querySelector('.truck-volume').value),
             timeMix: card.querySelector('.truck-time-mix').value,
+            retarder: card.querySelector('.truck-retarder')?.value || '',
+            mtqAirPompage: fixZero(card.querySelector('.truck-mtq-air-pompage')?.value || ''),
+            mtqAffPompage: fixZero(card.querySelector('.truck-mtq-aff-pompage')?.value || ''),
             timeStart: card.querySelector('.truck-time-start').value,
             timeEnd: card.querySelector('.truck-time-end').value,
             water: fixZero(card.querySelector('.truck-water').value),
@@ -1019,7 +1119,7 @@ function saveReport(isDuplicate = false) {
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     
@@ -1053,7 +1153,7 @@ function saveReport(isDuplicate = false) {
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
         
         // Création de l'identifiant unique invisible
-        saveKey = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'ID_' + generateReportId();
     }
 
     const staticData = {};
@@ -1110,7 +1210,7 @@ function saveReport(isDuplicate = false) {
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     
@@ -1211,10 +1311,11 @@ document.addEventListener('input', function(e) {
 });
 
 // === MOTEUR D'EXPORT MULTI-TEMPLATE (OFFLINE BASE64) === //
-async function exportToPDF() {
+async function exportToPDF(target = 'eng') {
+    if (target === 'mtq') return exportMTQ();  // 🏛️ MTQ : gabarits MTQ (voir « EXPORT MTQ » à la fin du fichier)
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) {
             btn.textContent = "⏳ Génération en cours...";
             btn.disabled = true;
@@ -1664,9 +1765,9 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
+        const btn = document.getElementById('btn-export-pdf');
         if (btn) {
-            btn.textContent = "📄 Exporter en PDF";
+            btn.textContent = "📄 PDF";
             btn.disabled = false;
         }
     }
@@ -1676,8 +1777,8 @@ async function exportToPDF() {
 // === MOTEUR D'EXPORT MULTI-TEMPLATE (OFFLINE BASE64) === //
 async function exportToPDF() {
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) {
             btn.textContent = "⏳ Génération en cours...";
             btn.disabled = true;
@@ -2093,9 +2194,9 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
+        const btn = document.getElementById('btn-export-pdf');
         if (btn) {
-            btn.textContent = "📄 Exporter en PDF";
+            btn.textContent = "📄 PDF";
             btn.disabled = false;
         }
     }
@@ -2214,8 +2315,342 @@ document.addEventListener('change', e => {
             return result;
         };
     };
-    wrap('loadReport', () => { splitSpecsFromHidden(); checkAllTruckSpecs(); });
-    wrap('clearForm', () => { checkAllTruckSpecs(); });
-    wrap('addTruck', () => { checkAllTruckSpecs(); });
-    document.addEventListener('DOMContentLoaded', () => { splitSpecsFromHidden(); checkAllTruckSpecs(); });
+    // + en-têtes (cumul) et heure max de fin de déchargement de chaque camion
+    wrap('loadReport', () => { splitSpecsFromHidden(); checkAllTruckSpecs(); refreshTruckHeaders(); checkAllTruckUnloading(); });
+    wrap('clearForm', () => { checkAllTruckSpecs(); refreshTruckHeaders(); checkAllTruckUnloading(); });
+    wrap('addTruck', () => { checkAllTruckSpecs(); refreshTruckHeaders(); checkAllTruckUnloading(); });
+    document.addEventListener('DOMContentLoaded', () => { splitSpecsFromHidden(); checkAllTruckSpecs(); refreshTruckHeaders(); checkAllTruckUnloading(); });
 })();
+
+
+// ========================================================================== //
+// 🏛️ EXPORT MTQ : PAGE 1 MTQ (10 CAMIONS, RÉPÉTÉE) + PAGE 2 MTQ             //
+// ========================================================================== //
+// Gabarits TEMPLATE_F1_MTQ et TEMPLATE_F2_MTQ (tpl_beton.js). Un champ des PDF MTQ est rempli quand il porte le nom
+// d'un champ de l'app :
+//   - son id (ex. global-date, f2-spec-resistance, f2-remarques-globales) ;
+//   - camions : truck-<1 à 10>-<colonne> (mêmes noms que la page 2 Englobe : truck-1-time-mix, truck-1-vol-cum…) ;
+//   - échantillons : sample-<champ> (1er échantillon) et sample-<n>-<champ> (mêmes noms que le formulaire 3).
+// Page 1 : 10 camions par page ; au-delà, c'est la page 1 qui est répétée (camions 11-20 dans les lignes 1-10, etc.).
+// Un champ pas encore renommé est ignoré sans bloquer l'export ; le bilan est dans la console (« Diagnostic Export MTQ »).
+const MTQ_TRUCKS_PER_PAGE = 10;
+const MTQ_SKIP_IDS = ['saved-reports-dropdown', 'json-import-input'];
+
+function mtqNum(value) {
+    if (!value) return '';
+    let str = value.toString();
+    if (str.startsWith('.')) str = '0' + str;
+    if (str.startsWith('-.')) str = '-0.' + str.substring(2);
+    return str.replace('.', ',');
+}
+
+function mtqHasValue(value) {
+    return value === true || (typeof value === 'string' && value.trim() !== '');
+}
+
+// Valeurs d'un camion par colonne ; le cumul suit la même règle que le PDF Englobe (camion refusé non compté)
+function mtqTruckValues(card, state) {
+    const val = sel => card.querySelector(sel)?.value || '';
+    const checked = sel => !!card.querySelector(sel)?.checked;
+    const refused = checked('.truck-refuse');
+    const volRaw = val('.truck-volume');
+    const vol = parseFloat(volRaw.replace(',', '.'));
+    if (!isNaN(vol) && !refused) state.cumul += vol;
+    const remarks = val('.truck-remarques-list').split(',').map(s => s.trim()).filter(Boolean).join(',');
+    return {
+        'id': val('.truck-id'),
+        'bordereau': val('.truck-bordereau'),
+        'vol-un': mtqNum(volRaw),
+        'vol-cum': (!isNaN(vol) && !refused) ? mtqNum(state.cumul.toFixed(1)) : '',
+        'time-mix': val('.truck-time-mix'),
+        'retarder': val('.truck-retarder'),
+        'time-start': val('.truck-time-start'),
+        'time-end': val('.truck-time-end'),
+        'water': mtqNum(val('.truck-water')),
+        'plast': mtqNum(val('.truck-plast')),
+        'air1': mtqNum(val('.truck-air1')),
+        'air2': mtqNum(val('.truck-air2')),
+        'temp': mtqNum(val('.truck-temp')),
+        'mtq-air-pompage': mtqNum(val('.truck-mtq-air-pompage')),   // MTQ seulement : après le pompage
+        'mtq-aff-pompage': val('.truck-mtq-aff-pompage'),
+        'slump1': val('.truck-slump1'),
+        'slump2': val('.truck-slump2'),
+        'slump1-sp': checked('.truck-slump1-sp'),
+        'slump2-sp': checked('.truck-slump2-sp'),
+        'refuse': refused,
+        'sample-check': checked('.truck-sample-check'),
+        'sample-num': val('.truck-sample-num'),
+        'sample-time': val('.truck-sample-time'),
+        'remarque': remarks || (refused ? 'N/C' : ''),
+    };
+}
+
+// Champs fixes de l'app (id -> valeur) : en-tête, spécifications, remarques, signatures…
+function mtqStaticValues() {
+    const out = {};
+    document.querySelectorAll('input[id], select[id], textarea[id]').forEach(el => {
+        if (MTQ_SKIP_IDS.includes(el.id) || el.type === 'file' || el.closest('#save-manager, .croquis-addon')) return;
+        out[el.id] = (el.type === 'checkbox' || el.type === 'radio') ? el.checked : (el.type === 'number' ? mtqNum(el.value) : el.value);
+    });
+    return out;
+}
+
+// Fiches d'échantillons (hors témoins seuls) : classe -> valeur, avec les valeurs par défaut du formulaire 3
+function mtqSampleCards() {
+    const globalDate = document.getElementById('global-date')?.value || '';
+    const tech = document.getElementById('f2-tech-name')?.value || document.getElementById('f1-tech-name')?.value || '';
+    const initials = tech.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('');
+    const trucks = document.querySelectorAll('.truck-card');
+    return Array.from(document.querySelectorAll('.sample-card:not(.temoin-only-card)')).map(card => {
+        const values = {};
+        card.querySelectorAll('input, textarea, select').forEach(input => {
+            const cls = Array.from(input.classList).find(c => c.startsWith('sample-'));
+            if (cls) values[cls] = input.type === 'checkbox' ? input.checked : input.value;
+        });
+        if (!values['sample-prelev-date'] && globalDate) values['sample-prelev-date'] = globalDate;
+        if (!values['sample-prelev-tech'] && initials) values['sample-prelev-tech'] = initials;
+        const truck = card.dataset.linkedTruck ? trucks[card.dataset.linkedTruck - 1] : null;
+        if (truck) {
+            if (truck.querySelector('.truck-sample-num')?.value) values['sample-no'] = truck.querySelector('.truck-sample-num').value;
+            if (!values['sample-prelev-time'] && truck.querySelector('.truck-sample-time')?.value) values['sample-prelev-time'] = truck.querySelector('.truck-sample-time').value;
+        }
+        return values;
+    });
+}
+
+// Noms du PDF MTQ pour 2 échantillons (le formulaire MTQ en a 2 par page, 3 éprouvettes A / B / C chacun) :
+//   champs Englobe de la fiche -> sample-1-<champ> / sample-2-<champ> (+ -b / -c des éprouvettes B et C ; le 1er
+//   échantillon aussi sans numéro : moules, dimensions…) ; champs MTQ de la fiche (classes sample-mtq-…) ->
+//   mtq-cure-ech<1|2>-condition-<1..6>, mtq-ech<1|2>-…, mtq-eprouvette-<1..6>-…, mtq-labo-…, mtq-demoulage-…, mtq-resultat-…
+const MTQ_SPECIMENS = ['a', 'b', 'c'];
+function mtqSampleNames(pair) {
+    const out = {};
+    pair.forEach((values, idx) => {
+        const s = idx + 1;
+        Object.entries(values).forEach(([cls, value]) => {
+            if (cls.startsWith('sample-mtq-')) return;
+            const numbered = cls.replace('sample-', `sample-${s}-`);
+            out[numbered] = value;
+            out[`${numbered}-b`] = value;
+            out[`${numbered}-c`] = value;
+            if (s === 1) out[cls] = value;
+        });
+        const v = key => values[`sample-mtq-${key}`];
+        for (let i = 1; i <= 6; i++) out[`mtq-cure-ech${s}-condition-${i}`] = v(`cure-${i}`) === true;
+        out[`mtq-ech${s}-heure-depart`] = v('heure-depart') || '';
+        out[`mtq-ech${s}-temps-transport`] = v('temps-transport') || '';
+        out[`mtq-ech${s}-temp-transport-min`] = mtqNum(v('transp-min'));
+        out[`mtq-ech${s}-temp-transport-max`] = mtqNum(v('transp-max'));
+        MTQ_SPECIMENS.forEach((letter, k) => {
+            const n = (s - 1) * 3 + k + 1;
+            const ep = key => values[`sample-mtq-ep${letter}-${key}`];
+            out[`mtq-eprouvette-${n}-identification`] = ep('id') || '';
+            out[`mtq-eprouvette-${n}-temoin`] = ep('temoin') === true;
+            out[`mtq-eprouvette-${n}-deplacee`] = ep('deplacee') === true;
+            out[`mtq-eprouvette-${n}-endommagee`] = ep('endommagee') === true;
+            out[`mtq-labo-eprouvette-${n}-identification`] = ep('labo-id') || '';
+            out[`mtq-demoulage-eprouvette-${n}-date`] = ep('demoulage-date') || '';
+            out[`mtq-demoulage-eprouvette-${n}-heure`] = ep('demoulage-heure') || '';
+            out[`mtq-resultat-eprouvette-${n}-identification`] = ep('resultat-id') || '';
+            ['age', 'compression', 'carotte', 'flexion'].forEach(key => { out[`mtq-resultat-eprouvette-${n}-${key}`] = mtqNum(ep(key)); });
+        });
+    });
+    return out;
+}
+
+// Remplissage tolérant d'une page MTQ : un champ absent (pas encore renommé) est noté, jamais bloquant.
+// Un nom qui ne diffère que par des espaces (ex. « truck-1- plast ») est accepté et signalé.
+function mtqPageFiller(form, page, diag) {
+    const loose = name => name.replace(/\s+/g, '').toLowerCase();
+    const exact = new Map(), approx = new Map();
+    form.getFields().forEach(f => {
+        exact.set(f.getName(), f);
+        if (!approx.has(loose(f.getName()))) approx.set(loose(f.getName()), f);
+    });
+    const fill = (name, value) => {
+        const near = exact.has(name) ? null : approx.get(loose(name));
+        const field = exact.get(name) || near;
+        if (!field) return false;
+        try {
+            if (field instanceof PDFLib.PDFCheckBox) {
+                if (value === true) field.check(); else field.uncheck();
+            } else if (field instanceof PDFLib.PDFRadioGroup) {
+                if (mtqHasValue(value) && field.getOptions().includes(String(value))) field.select(String(value));
+            } else if (field instanceof PDFLib.PDFDropdown || field instanceof PDFLib.PDFOptionList) {
+                if (mtqHasValue(value)) field.select(String(value));
+            } else if (field instanceof PDFLib.PDFTextField) {
+                // Case de l'app dans un petit champ texte du PDF : « X »
+                field.setText(typeof value === 'boolean' ? (value ? 'X' : '') : String(value ?? ''));
+            } else {
+                return false;  // bouton, signature : rien à écrire
+            }
+        } catch (e) {
+            diag.errors.push(`${page} · ${field.getName()} : ${e.message}`);
+            return false;
+        }
+        if (mtqHasValue(value)) diag.filled[page].add(near ? `${field.getName()}  (≈ ${name} : espace dans le nom du PDF)` : field.getName());
+        diag.usedPdf[page].add(field.getName());
+        return true;
+    };
+    fill.allNames = () => [...exact.keys()];
+    return fill;
+}
+
+// Page remplie (police Tahoma), aplatie, puis ajoutée au PDF MTQ
+async function mtqAppendPage(mtqPdfDoc, subDoc, form, fontBytes, page, diag) {
+    try {
+        subDoc.registerFontkit(fontkit);
+        const font = await subDoc.embedFont(fontBytes, { subset: true });
+        form.updateFieldAppearances(font);
+    } catch (e) {
+        diag.errors.push(`${page} · police Tahoma : ${e.message}`);
+    }
+    try {
+        form.flatten();
+    } catch (e) {
+        // Aplatissement impossible : champs renommés pour éviter les doublons entre les pages copiées
+        diag.errors.push(`${page} · aplatissement : ${e.message}`);
+        const tag = '_' + page + '_' + mtqPdfDoc.getPageCount();
+        form.getFields().forEach(f => { try { f.acroField.setPartialName(f.getName() + tag); } catch (err) {} });
+    }
+    const pages = await mtqPdfDoc.copyPages(subDoc, subDoc.getPageIndices());
+    pages.forEach(p => mtqPdfDoc.addPage(p));
+}
+
+function mtqPrintDiagnostic(diag, staticValues, truckTried, pages1, pages2) {
+    const found = new Set([...diag.usedPdf.f1_mtq, ...diag.usedPdf.f2_mtq]);
+    const loose = name => name.replace(/\s+/g, '').toLowerCase();
+    const foundLoose = new Set([...found].map(loose));
+    const missingStatic = Object.entries(staticValues)
+        .filter(([id, value]) => mtqHasValue(value) && !foundLoose.has(loose(id)))
+        .map(([id]) => id);
+    const missingTrucks = Object.entries(truckTried)
+        .map(([col, slots]) => [col, [...slots].filter(s => !foundLoose.has(loose(`truck-${s}-${col}`))).sort((a, b) => a - b)])
+        .filter(([, slots]) => slots.length)
+        .map(([col, slots]) => `truck-{${slots.join(',')}}-${col}`);
+    console.group('Diagnostic Export MTQ');
+    console.log(`${pages1 + pages2} page(s) : page 1 MTQ ×${pages1} (10 camions par page), puis page 2 MTQ ×${pages2} (2 échantillons par page).`);
+    console.log(`✅ Champs remplis sur f1_mtq (${diag.filled.f1_mtq.size}) :`, [...diag.filled.f1_mtq].sort());
+    console.log(`✅ Champs remplis sur f2_mtq (${diag.filled.f2_mtq.size}) :`, [...diag.filled.f2_mtq].sort());
+    console.log(`⚠️ Champs de l'application non trouvés dans le PDF MTQ (pas encore renommés) (${missingStatic.length + missingTrucks.length}) :`,
+        [...missingStatic.sort(), ...missingTrucks]);
+    ['f1_mtq', 'f2_mtq'].forEach(page => {
+        // Les petites cases texte posées par-dessus une case à cocher (« -texte ») ne sont jamais remplies : non listées
+        const unused = diag.pdfNames[page].filter(n => !diag.usedPdf[page].has(n) && !n.endsWith('-texte'));
+        console.log(`ℹ️ Champs de ${page} sans correspondance dans l'app (${unused.length}) :`, unused);
+    });
+    if (diag.errors.length) console.warn('Erreurs ignorées :', diag.errors);
+    console.groupEnd();
+}
+
+async function exportMTQ() {
+    const btn = document.getElementById('btn-export-mtq');
+    const originalText = btn ? btn.textContent : "🏛️ MTQ";
+    if (typeof TEMPLATE_F1_MTQ === 'undefined' || typeof TEMPLATE_F2_MTQ === 'undefined') {
+        return showToast("Modèles MTQ introuvables dans tpl_beton.js (TEMPLATE_F1_MTQ / TEMPLATE_F2_MTQ).", "error");
+    }
+    try {
+        if (btn) { btn.textContent = "⏳ Génération en cours..."; btn.disabled = true; }
+        const getBytes = base64 => {
+            const str = window.atob(base64);
+            const bytes = new Uint8Array(str.length);
+            for (let i = 0; i < str.length; i++) bytes[i] = str.charCodeAt(i);
+            return bytes;
+        };
+        const fontBytes = getBytes(TAHOMA_FONT);
+        const mtqPdfDoc = await PDFLib.PDFDocument.create();
+        mtqPdfDoc.registerFontkit(fontkit);
+        const diag = { filled: { f1_mtq: new Set(), f2_mtq: new Set() }, usedPdf: { f1_mtq: new Set(), f2_mtq: new Set() },
+                       pdfNames: { f1_mtq: [], f2_mtq: [] }, errors: [] };
+        const staticValues = mtqStaticValues();
+        // Échantillons par paires : la page 2 MTQ en contient 2 (répétée au besoin) ; la page 1 montre la 1re paire
+        const sampleCards = mtqSampleCards();
+        const pairs = [];
+        for (let i = 0; i < sampleCards.length; i += 2) pairs.push(sampleCards.slice(i, i + 2));
+        if (!pairs.length) pairs.push([]);
+        const truckTried = {};  // colonne -> numéros de ligne (1-10) avec une valeur à écrire
+        const fillCommon = (fill, pair) => {
+            Object.entries(staticValues).forEach(([id, value]) => fill(id, value));
+            Object.entries(mtqSampleNames(pair)).forEach(([name, value]) => fill(name, value));
+        };
+
+        // Page 1 MTQ : 10 camions par page, répétée au besoin (au moins une page)
+        const trucks = Array.from(document.querySelectorAll('.truck-card'));
+        const nPages = Math.max(1, Math.ceil(trucks.length / MTQ_TRUCKS_PER_PAGE));
+        const state = { cumul: 0 };
+        for (let p = 0; p < nPages; p++) {
+            const subDoc = await PDFLib.PDFDocument.load(getBytes(TEMPLATE_F1_MTQ));
+            const form = subDoc.getForm();
+            const fill = mtqPageFiller(form, 'f1_mtq', diag);
+            if (p === 0) diag.pdfNames.f1_mtq = fill.allNames();
+            fillCommon(fill, pairs[0]);
+            ['mtq-page-number', 'f1-mtq-page-number'].forEach(name => fill(name, `${p + 1} de ${nPages}`));
+            trucks.slice(p * MTQ_TRUCKS_PER_PAGE, (p + 1) * MTQ_TRUCKS_PER_PAGE).forEach((card, idx) => {
+                const slot = idx + 1;
+                Object.entries(mtqTruckValues(card, state)).forEach(([col, value]) => {
+                    if (mtqHasValue(value)) (truckTried[col] = truckTried[col] || new Set()).add(slot);
+                    fill(`truck-${slot}-${col}`, value);
+                });
+            });
+            await mtqAppendPage(mtqPdfDoc, subDoc, form, fontBytes, 'f1_mtq', diag);
+        }
+
+        // Page 2 MTQ : après toutes les pages 1, une par paire d'échantillons (au moins une)
+        for (let p = 0; p < pairs.length; p++) {
+            const subDoc2 = await PDFLib.PDFDocument.load(getBytes(TEMPLATE_F2_MTQ));
+            const form2 = subDoc2.getForm();
+            const fill2 = mtqPageFiller(form2, 'f2_mtq', diag);
+            if (p === 0) diag.pdfNames.f2_mtq = fill2.allNames();
+            fillCommon(fill2, pairs[p]);
+            await mtqAppendPage(mtqPdfDoc, subDoc2, form2, fontBytes, 'f2_mtq', diag);
+        }
+
+        mtqPrintDiagnostic(diag, staticValues, truckTried, nPages, pairs.length);
+
+        // Croquis annexé (s'il est activé et coché) : ajouté en dernière page par croquis_addon.js au moment du save()
+        const pdfBytes = await mtqPdfDoc.save();
+        const clean = s => String(s || '').trim().replace(/[\\/:*?"<>|\s]+/g, '-').replace(/^-+|-+$/g, '');
+        const projet = clean(document.getElementById('global-no-projet')?.value) || clean(document.getElementById('global-projet')?.value) || 'SANS-PROJET';
+        const date = document.getElementById('global-date')?.value || new Date().toISOString().split('T')[0];
+        await mtqDeliver(mtqPdfDoc, pdfBytes, `Beton_MTQ_${projet}_${date}.pdf`);
+        showToast(`PDF MTQ généré (${mtqPdfDoc.getPageCount()} pages). Détail des champs : console du navigateur.`, "success");
+    } catch (error) {
+        console.error("Erreur lors de l'export MTQ :", error);
+        showToast("Erreur lors de l'export MTQ. Vérifiez la console.", "error");
+    } finally {
+        if (btn) { btn.textContent = originalText; btn.disabled = false; }
+    }
+}
+
+// Téléchargement / partage : même comportement que l'export Englobe (Android, iPhone / iPad, ordinateur)
+async function mtqDeliver(pdfDoc, pdfBytes, fileName) {
+    if (window.Capacitor && window.Capacitor.isNativePlatform()) {
+        const pdfBase64 = await pdfDoc.saveAsBase64();
+        const { Filesystem, FileOpener } = window.Capacitor.Plugins;
+        const resultat = await Filesystem.writeFile({ path: fileName, data: pdfBase64, directory: 'CACHE', recursive: true });
+        await FileOpener.open({ filePath: resultat.uri, contentType: 'application/pdf' });
+        return;
+    }
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const isMacTouch = navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
+    const isApple = /iPhone|iPad|iPod/i.test(navigator.userAgent) || isMacTouch;
+    if (isApple && navigator.share && navigator.canShare) {
+        const file = new File([blob], fileName, { type: 'application/pdf' });
+        if (navigator.canShare({ files: [file] })) {
+            try {
+                await navigator.share({ files: [file] });
+                return;
+            } catch (err) {
+                if (err.name === 'AbortError') return;
+            }
+        }
+    }
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => window.URL.revokeObjectURL(url), 100);
+}

@@ -31,39 +31,39 @@ function showToast(message, type = 'success') {
 // 2. GESTION DES IMAGES                      //
 // ========================================== //
 
-function encodeImage(input, index) {
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            const img = new Image();
-            img.src = e.target.result;
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800; 
-                let scaleSize = 1;
-                if (img.width > MAX_WIDTH) scaleSize = MAX_WIDTH / img.width;
-                
-                canvas.width = img.width * scaleSize;
-                canvas.height = img.height * scaleSize;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-                
-                const dataUrl = canvas.toDataURL('image/jpeg', 0.7); 
-                document.getElementById(`desc-img-${index}-base64`).value = dataUrl;
-                
-                const previewEl = document.getElementById(`desc-img-${index}-preview`);
-                previewEl.src = dataUrl;
-                previewEl.style.display = 'block';
-                document.getElementById(`desc-img-${index}-clear`).style.display = 'inline-block';
-
-                showToast("Image ajoutée et compressée.", "success");
-            }
-        };
-        reader.readAsDataURL(file);
+async function encodeImage(input, index) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    try {
+        // Compression sur un <canvas> hors écran (1200 px au plus, JPEG 0,75) : moteur commun shared/js/gestion_rapports.js
+        const dataUrl = window.InspectionPhotos ? await window.InspectionPhotos.compress(file)
+            : await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(String(reader.result));
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        restoreImageSlot(`desc-img-${index}-base64`, dataUrl);
+        showToast("Image ajoutée et compressée (1200 px).", "success");
+    } catch (e) {
+        console.error("Image non ajoutée :", e);
+        showToast("Cette image n'a pas pu être lue.", "error");
     }
+}
+
+// Cadre photo rempli : champ caché (base64) + aperçu + bouton Retirer
+function restoreImageSlot(id, value) {
+    const hidden = document.getElementById(id);
+    if (!hidden || !value) return;
+    hidden.value = value;
+    const index = id.split('-')[2];
+    const previewEl = document.getElementById(`desc-img-${index}-preview`);
+    const clearBtn = document.getElementById(`desc-img-${index}-clear`);
+    if (previewEl) {
+        previewEl.src = value;
+        previewEl.style.display = 'block';
+    }
+    if (clearBtn) clearBtn.style.display = 'inline-block';
 }
 
 function clearImage(index) {
@@ -171,13 +171,22 @@ function loadReport() {
     const selectedKey = dropdown.value;
     if (!selectedKey) { showToast("Veuillez d'abord sélectionner un rapport.", "info"); return; }
 
-    const reportDataStr = localStorage.getItem(selectedKey);
+    const reportDataStr = readStoredReport(selectedKey);
     if (!reportDataStr) return;
 
     clearForm();
     try {
         const reportData = JSON.parse(reportDataStr);
         updateLastSavedStatus(reportData.timestamp);
+        // Photos gardées dans IndexedDB (rapports enregistrés depuis la v0.5.0.0) : remises dans leurs cadres
+        if (reportData.photos_idb && window.InspectionPhotos) {
+            window.InspectionPhotos.get(selectedKey).then(record => {
+                Object.entries((record && record.slots) || {}).forEach(([id, value]) => restoreImageSlot(id, value));
+            }).catch(e => {
+                console.error("Photos du rapport introuvables :", e);
+                showToast("Les photos de ce rapport sont introuvables sur cet appareil.", "error");
+            });
+        }
 
         if (reportData.static) {
             for (const [id, value] of Object.entries(reportData.static)) {
@@ -226,7 +235,7 @@ function saveReport(isDuplicate = false) {
         
         baseName = userPromptName.trim() || baseName;
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
-        saveKey = 'PHOTO_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'PHOTO_' + generateReportId();
     } else {
         const existingDataStr = localStorage.getItem(saveKey);
         if (existingDataStr) {
@@ -243,13 +252,32 @@ function saveReport(isDuplicate = false) {
         staticData[el.id] = el.type === 'checkbox' ? el.checked : el.value;
     });
 
+    // Photos : gardées dans IndexedDB (InspectionPhotosDB) avec le rapport, plus dans localStorage (5 Mo pour tout l'appareil)
+    const photoSlots = {};
+    const photosInDb = !!window.InspectionPhotos;
+    if (photosInDb) {
+        Object.keys(staticData).forEach(id => {
+            if (/^desc-img-\d+-base64$/.test(id)) {
+                if (staticData[id]) photoSlots[id] = staticData[id];
+                staticData[id] = '';
+            }
+        });
+    }
+
     const reportData = {
         displayName: baseName, 
         static: staticData,
+        photos_idb: photosInDb,
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
+    if (photosInDb) {
+        window.InspectionPhotos.put(saveKey, { slots: photoSlots }).catch(e => {
+            console.error("Photos non enregistrées dans IndexedDB :", e);
+            showToast("Les photos n'ont pas pu être enregistrées sur cet appareil.", "error");
+        });
+    }
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     updateDropdown();
@@ -303,8 +331,8 @@ async function exportToPDF() {
     }
 
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) { btn.textContent = "⏳ Génération en cours..."; btn.disabled = true; }
 
         const getBuffer = (base64) => {
@@ -471,8 +499,8 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        if (btn) { btn.textContent = "📄 Exporter en PDF"; btn.disabled = false; }
+        const btn = document.getElementById('btn-export-pdf');
+        if (btn) { btn.textContent = "📄 PDF"; btn.disabled = false; }
     }
 }
 
@@ -484,8 +512,8 @@ async function exportToPDF() {
     }
 
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) { btn.textContent = "⏳ Génération en cours..."; btn.disabled = true; }
 
         const getBuffer = (base64) => {
@@ -599,8 +627,8 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        if (btn) { btn.textContent = "📄 Exporter en PDF"; btn.disabled = false; }
+        const btn = document.getElementById('btn-export-pdf');
+        if (btn) { btn.textContent = "📄 PDF"; btn.disabled = false; }
     }
 }
 */

@@ -251,7 +251,7 @@ function saveReport(isDuplicate = false) {
         
         baseName = userPromptName.trim() || baseName;
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
-        saveKey = 'COULIS_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'COULIS_' + generateReportId();
     } else {
         baseName = `englobe_${rawDate}_${noProjet}_COULIS_${techInitials}`;
     }
@@ -281,7 +281,7 @@ function saveReport(isDuplicate = false) {
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     updateDropdown();
@@ -294,7 +294,7 @@ function loadReport() {
     const selectedKey = dropdown.value;
     if (!selectedKey) { showToast("Veuillez sélectionner un rapport.", "info"); return; }
 
-    const reportDataStr = localStorage.getItem(selectedKey);
+    const reportDataStr = readStoredReport(selectedKey);
     if (!reportDataStr) return;
 
     clearForm();
@@ -403,8 +403,8 @@ async function exportToPDF() {
     }
 
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) { btn.textContent = "⏳ Génération..."; btn.disabled = true; }
 
         const getBuffer = (base64) => {
@@ -445,15 +445,17 @@ async function exportToPDF() {
             trySetText('global-soustraitant', document.getElementById('global-soustraitant').value);
             trySetText('sig-prep-nom', document.getElementById('sig-prep-nom').value);
             trySetText('global-no-ech', document.getElementById('global-no-ech').value);
+            trySetText('global-no-rapport', document.getElementById('global-no-rapport')?.value || '');
 
             // Gestion des champs multi-lignes
             const projetLines = splitTextIntelligently(document.getElementById('global-projet').value, 50);
             trySetText('global-projet-1', projetLines[0]);
             trySetText('global-projet-2', projetLines[1]);
 
+            // « Genre et lieu des travaux » : 9 lignes dans le PDF, nommées lieu-0 à lieu-8
             const lieuLines = splitTextIntelligently(document.getElementById('lieu-travaux').value, 55);
-            for(let i=0; i<8; i++) {
-                trySetText(`lieu-travaux-${i+1}`, lieuLines[i]);
+            for (let i = 0; i < 9; i++) {
+                trySetText(`lieu-${i}`, lieuLines[i]);
             }
 
             // Exigences & Spécifications
@@ -461,7 +463,7 @@ async function exportToPDF() {
             trySetCheck('exi-csa', document.getElementById('exi-csa').checked);
             trySetText('spec-res-mpa', formatNum(document.getElementById('spec-res-mpa').value, 'int'));
             trySetText('spec-res-jour', formatNum(document.getElementById('spec-res-jour').value, 'int'));
-            trySetText('spec-exptotate', formatNum(document.getElementById('spec-exptotate').value, 'percent'));
+            trySetText('spec-exptotale', formatNum(document.getElementById('spec-exptotate').value, 'percent'));  // id du formulaire gardé (rapports déjà enregistrés)
             trySetText('spec-tempsmalax', formatNum(document.getElementById('spec-tempsmalax').value, 'int'));
             trySetText('spec-exsudation', formatNum(document.getElementById('spec-exsudation').value, 'percent'));
             trySetText('spec-ep', formatNum(document.getElementById('spec-ep').value, 'ep'));
@@ -501,7 +503,7 @@ async function exportToPDF() {
                     
                     trySetText(`essais-inj-deb-${slot}`, getVal('essais-inj-deb'));
                     trySetText(`essais-inj-fin-${slot}`, getVal('essais-inj-fin'));
-                    trySetText(`essais-pressi-inj-${slot}`, formatNum(getVal('essais-pressi-inj'), 'int'));
+                    trySetText(`essais-press-inj-${slot}`, formatNum(getVal('essais-pressi-inj'), 'int'));
                     trySetText(`essais-press-maint-${slot}`, formatNum(getVal('essais-press-maint'), 'int'));
                     
                     trySetText(`essais-3j-${slot}`, formatNum(getVal('essais-3j'), 'int'));
@@ -510,10 +512,17 @@ async function exportToPDF() {
                     trySetText(`essais-xj-${slot}`, formatNum(getVal('essais-xj'), 'int'));
                     trySetText(`essais-nb-norm-${slot}`, formatNum(getVal('essais-nb-norm'), 'int'));
                     trySetText(`essais-nb-tem-${slot}`, formatNum(getVal('essais-nb-tem'), 'int'));
-                    trySetText(`essais-sac-1-${slot}`, formatNum(getVal('essais-sac-1'), 'int'));
-                    trySetText(`essais-sac-2-${slot}`, formatNum(getVal('essais-sac-2'), 'int'));
                 }
             }
+
+            // Sacs : une seule ligne par page dans le PDF (essais-sac-1 / essais-sac-2) -> somme des essais de la page
+            const pageCards = Array.from(cards).slice(pageIdx * 3, pageIdx * 3 + 3);
+            const sumSacs = (cls) => {
+                const vals = pageCards.map(c => c.querySelector('.' + cls)?.value).filter(v => v !== undefined && v !== '' && !isNaN(v));
+                return vals.length ? formatNum(vals.reduce((a, v) => a + parseFloat(v), 0), 'int') : '';
+            };
+            trySetText('essais-sac-1', sumSacs('essais-sac-1'));
+            trySetText('essais-sac-2', sumSacs('essais-sac-2'));
 
             try {
                 if(tahomaFont) form.updateFieldAppearances(tahomaFont);
@@ -591,7 +600,7 @@ async function exportToPDF() {
     } catch (error) {
         console.error(error);
         showToast("Erreur lors de l'export PDF. TEMPLATE_COULIS est-il présent ?", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        if (btn) { btn.textContent = "📄 Exporter en PDF"; btn.disabled = false; }
+        const btn = document.getElementById('btn-export-pdf');
+        if (btn) { btn.textContent = "📄 PDF"; btn.disabled = false; }
     }
 }

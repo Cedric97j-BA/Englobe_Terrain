@@ -211,7 +211,7 @@ function loadReport() {
         return;
     }
 
-    const reportDataStr = localStorage.getItem(selectedKey);
+    const reportDataStr = readStoredReport(selectedKey);
     if (!reportDataStr) return;
 
     clearForm();
@@ -264,7 +264,7 @@ function saveReport(isDuplicate = false) {
         
         baseName = userPromptName.trim() || baseName;
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
-        saveKey = 'JRNLOLD_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'JRNLOLD_' + generateReportId();
     } else {
         const existingDataStr = localStorage.getItem(saveKey);
         if (existingDataStr) {
@@ -299,7 +299,7 @@ function saveReport(isDuplicate = false) {
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     updateDropdown();
@@ -426,8 +426,8 @@ async function exportToPDF() {
     }
 
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) { btn.textContent = "⏳ Génération en cours..."; btn.disabled = true; }
 
         const getBuffer = (base64) => {
@@ -582,8 +582,8 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        if (btn) { btn.textContent = "📄 Exporter en PDF"; btn.disabled = false; }
+        const btn = document.getElementById('btn-export-pdf');
+        if (btn) { btn.textContent = "📄 PDF"; btn.disabled = false; }
     }
 }
 /*
@@ -594,8 +594,8 @@ async function exportToPDF() {
     }
 
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) { btn.textContent = "⏳ Génération en cours..."; btn.disabled = true; }
 
         const getBuffer = (base64) => {
@@ -720,8 +720,8 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        if (btn) { btn.textContent = "📄 Exporter en PDF"; btn.disabled = false; }
+        const btn = document.getElementById('btn-export-pdf');
+        if (btn) { btn.textContent = "📄 PDF"; btn.disabled = false; }
     }
 }
 */

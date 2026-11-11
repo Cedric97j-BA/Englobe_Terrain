@@ -1,5 +1,19 @@
 {
  "apps": {
+  "tree/ENG/ICI/GEO/fond-excav/index_fond-excav.html": {
+   "files": [
+    "tree/ENG/ICI/GEO/fond-excav/app_fond-excav.js",
+    "tree/ENG/ICI/GEO/fond-excav/index_fond-excav.html",
+    "tree/ENG/ICI/GEO/fond-excav/logo_fond-excav.png",
+    "tree/ENG/ICI/GEO/fond-excav/tpl_fond-excav.js"
+   ],
+   "rapports": {
+    "cles": [
+     "FEXC_"
+    ],
+    "slug": "fond-excav"
+   }
+  },
   "tree/ENG/ICI/MAT/Coulis/index_coulis.html": {
    "files": [
     "tree/ENG/ICI/MAT/Coulis/app_coulis.js",
@@ -37,6 +51,20 @@
     "cles": [
      "PAVAGE_"
     ]
+   }
+  },
+  "tree/ENG/croquis/index_croquis.html": {
+   "files": [
+    "tree/ENG/croquis/app_croquis.js",
+    "tree/ENG/croquis/index_croquis.html",
+    "tree/ENG/croquis/logo_croquis.png",
+    "tree/ENG/croquis/tpl_croquis.js"
+   ],
+   "rapports": {
+    "cles": [
+     "CROQ_"
+    ],
+    "slug": "croquis"
    }
   },
   "tree/GEN/journal/index_journal.html": {
@@ -129,13 +157,29 @@
  },
  "auto_pin_max": 25,
  "files": {
+  "tree/ENG/ICI/GEO/fond-excav/app_fond-excav.js": {
+   "b": 52064,
+   "h": "3cbaaf15078d"
+  },
+  "tree/ENG/ICI/GEO/fond-excav/index_fond-excav.html": {
+   "b": 54174,
+   "h": "387afab9f4e6"
+  },
+  "tree/ENG/ICI/GEO/fond-excav/logo_fond-excav.png": {
+   "b": 14265,
+   "h": "d65a4b729b39"
+  },
+  "tree/ENG/ICI/GEO/fond-excav/tpl_fond-excav.js": {
+   "b": 321339,
+   "h": "7ff9a6ac9185"
+  },
   "tree/ENG/ICI/MAT/Coulis/app_coulis.js": {
-   "b": 26772,
-   "h": "8a60b748bffa"
+   "b": 27373,
+   "h": "5c20cbd0439c"
   },
   "tree/ENG/ICI/MAT/Coulis/index_coulis.html": {
-   "b": 71711,
-   "h": "55c7fe701804"
+   "b": 26708,
+   "h": "cde56c0fbe26"
   },
   "tree/ENG/ICI/MAT/Coulis/logo_coulis.png": {
    "b": 23475,
@@ -146,12 +190,12 @@
    "h": "405f406e346e"
   },
   "tree/ENG/ICI/MAT/Ech_sol_gran/app_echsolgra.js": {
-   "b": 22779,
-   "h": "7165b0b08886"
+   "b": 22624,
+   "h": "810a790f19e4"
   },
   "tree/ENG/ICI/MAT/Ech_sol_gran/index_echsolgra.html": {
-   "b": 74250,
-   "h": "0cc089fb3624"
+   "b": 28983,
+   "h": "8287d1f86db2"
   },
   "tree/ENG/ICI/MAT/Ech_sol_gran/logo_echsolgra.png": {
    "b": 47421,
@@ -162,12 +206,12 @@
    "h": "f76bf3da10f2"
   },
   "tree/ENG/ICI/MAT/Pavage/app_pavage.js": {
-   "b": 28098,
-   "h": "a13d6694cbc2"
+   "b": 27999,
+   "h": "99e410835bbe"
   },
   "tree/ENG/ICI/MAT/Pavage/index_pavage.html": {
-   "b": 64334,
-   "h": "06e69193a5bf"
+   "b": 19056,
+   "h": "425ad8ac0caf"
   },
   "tree/ENG/ICI/MAT/Pavage/logo_enrob.png": {
    "b": 23476,
@@ -177,13 +221,29 @@
    "b": 257709,
    "h": "96b2b81bf237"
   },
+  "tree/ENG/croquis/app_croquis.js": {
+   "b": 28179,
+   "h": "bedca4dad23d"
+  },
+  "tree/ENG/croquis/index_croquis.html": {
+   "b": 11173,
+   "h": "99296d0d402e"
+  },
+  "tree/ENG/croquis/logo_croquis.png": {
+   "b": 14800,
+   "h": "0702edce9cf7"
+  },
+  "tree/ENG/croquis/tpl_croquis.js": {
+   "b": 1674254,
+   "h": "feccb1fd6b05"
+  },
   "tree/GEN/journal/app_journal.js": {
-   "b": 44293,
-   "h": "3c03af5e790a"
+   "b": 45570,
+   "h": "ba3f997617d7"
   },
   "tree/GEN/journal/index_journal.html": {
-   "b": 71187,
-   "h": "6687d49b9f6f"
+   "b": 25811,
+   "h": "097b4c8fd2a4"
   },
   "tree/GEN/journal/logo_journal.png": {
    "b": 17926,
@@ -194,28 +254,28 @@
    "h": "776f5d164f1c"
   },
   "tree/HYB/beton/app_beton.js": {
-   "b": 100070,
-   "h": "7b0debc9ef9c"
+   "b": 124360,
+   "h": "0af8f651b444"
   },
   "tree/HYB/beton/index_beton.html": {
-   "b": 157317,
-   "h": "b7258aa2e54f"
+   "b": 135888,
+   "h": "6cf6e7e0bf9c"
   },
   "tree/HYB/beton/logo_beton.png": {
    "b": 104048,
    "h": "f3ae1bb62317"
   },
   "tree/HYB/beton/tpl_beton.js": {
-   "b": 1254818,
-   "h": "922109dd6434"
+   "b": 2113603,
+   "h": "f0cd9f32d429"
   },
   "tree/HYB/compaction/app_compaction.js": {
-   "b": 41026,
-   "h": "c09dd5274f62"
+   "b": 40984,
+   "h": "a57abcb35291"
   },
   "tree/HYB/compaction/index_compaction.html": {
-   "b": 88271,
-   "h": "8d71e8f4303a"
+   "b": 43939,
+   "h": "95fb637c29c5"
   },
   "tree/HYB/compaction/logo_compaction.png": {
    "b": 27300,
@@ -226,12 +286,12 @@
    "h": "15c63b9b2543"
   },
   "tree/HYB/journal/app_journal_old.js": {
-   "b": 29819,
-   "h": "30256f19184f"
+   "b": 29664,
+   "h": "627802b6a8c9"
   },
   "tree/HYB/journal/index_journal_old.html": {
-   "b": 56906,
-   "h": "92a276804b2b"
+   "b": 12395,
+   "h": "85decfda67d3"
   },
   "tree/HYB/journal/logo_journal.png": {
    "b": 17926,
@@ -242,12 +302,12 @@
    "h": "6b9b4dc4ec2a"
   },
   "tree/HYB/journal_photo/app_photo.js": {
-   "b": 27134,
-   "h": "0a97332cb036"
+   "b": 28442,
+   "h": "968067a4e2dd"
   },
   "tree/HYB/journal_photo/index_photo.html": {
-   "b": 60058,
-   "h": "73c4db1a8738"
+   "b": 15540,
+   "h": "9ecc7117ff6c"
   },
   "tree/HYB/journal_photo/logo_photo.png": {
    "b": 50865,
@@ -258,12 +318,12 @@
    "h": "47721378d7bd"
   },
   "tree/HYB/planche/app_planche.js": {
-   "b": 50267,
-   "h": "4311906c0427"
+   "b": 50112,
+   "h": "1a95f66fddf8"
   },
   "tree/HYB/planche/index_planche.html": {
-   "b": 75519,
-   "h": "fbf8b938c0a7"
+   "b": 76939,
+   "h": "32577ddd0119"
   },
   "tree/HYB/planche/logo_planche.png": {
    "b": 82644,
@@ -273,5 +333,6 @@
    "b": 397670,
    "h": "8f9c25ca8545"
   }
- }
+ },
+ "version": "v0.5.0.0"
 }

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Croquis</title>
+    
+    <link rel="stylesheet" href="../../../shared/css/styles.css?v=v0.5.0.0">
+    <link rel="apple-touch-icon" href="logo_croquis.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Croquis">
+
+    
+    <script src="../../../shared/libs/pdf-lib.min.js"></script>
+    <script src="../../../shared/libs/fontkit.umd.min.js"></script>
+</head>
+<body data-org="eng" data-secteur="gen" data-service="gen" data-brand-name="Englobe">
+
+
+
+<div id="app-container">
+
+    <!-- EN-TÊTE OFFICIEL ENGLOBE -->
+    <header style="display: flex; align-items: center; gap: 15px; background: var(--brand-primary, #97c6b9); color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        
+        <img class="brand-logo" src="../../../shared/img/logo_entete.png" alt="Englobe" alt="Logo" style="height: 75px; padding: 5px; border-radius: 4px;"> 
+
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <h1 class="editable-text" style="margin: 0; font-size: 1.5rem; letter-spacing: 0.5px;">Croquis</h1>
+        </div>
+
+        <a class="home-button" href="../../../index.html" style="margin-left: auto; background: #1e293b; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            🏠 Accueil
+        </a>
+    </header>
+
+    <!-- GESTION DES RAPPORTS (SAUVEGARDE LOCALE) -->
+    <section id="save-manager" style="background: #1e293b; color: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px; max-width: 500px;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #cbd5e1;">Rapports Sauvegardés (Appareil Local)<span id="imported-indicator" title="Rapport reçu d'un autre appareil" style="display:none; background:#0d9488; color:#fff; border-radius:4px; padding:1px 5px; font-size:0.75rem; margin-left:6px;">📲</span></label>
+            <select id="saved-reports-dropdown" style="width: 100%; padding: 10px; border-radius: 4px; border: none; font-weight: bold; color: #334155;">
+                <option value="">-- Sélectionnez un rapport --</option>
+            </select>
+        </div>
+
+        <div class="report-actions">
+            <button type="button" class="report-btn" onclick="newReportPrompt()" style="--btn-bg: #0284c7;">➕ Nouveau</button>
+            <button type="button" class="report-btn" onclick="loadReport()" style="--btn-bg: #2563eb;">📂 Charger</button>
+            <button type="button" class="report-btn" onclick="triggerJsonImport()" style="--btn-bg: #0d9488;">📥 Importer</button>
+            <button type="button" class="report-btn" onclick="saveReport()" style="--btn-bg: #10b981;">💾 Sauvegarder</button>
+            <button type="button" class="report-btn" onclick="saveReport(true)" style="--btn-bg: #4f46e5;">📑 Dupliquer</button>
+            <button type="button" class="report-btn" onclick="deleteReport()" style="--btn-bg: #ef4444;">🗑️ Supprimer</button>
+            <input type="file" id="json-import-input" accept=".json,application/json,text/plain" style="display:none" onchange="importReportJson(event)">
+        </div>
+
+        <!-- EXPORTATION & TRANSMISSION -->
+        <div class="export-bar">
+            <button type="button" id="btn-export-pdf" class="report-btn report-btn-main" onclick="exportToPDF('eng')" style="--btn-bg: #7c3aed;">📄 PDF</button>
+            <button type="button" class="report-btn" onclick="shareReportJson()" style="--btn-bg: #0f766e;">📤 PARTAGER</button>
+            <button type="button" id="btn-export-lims" class="report-btn report-btn-lims is-frozen" style="--btn-bg: #334155;" title="Connexion LIMS bientôt disponible" disabled>🔒 LIMS</button>
+        </div>
+    </section>
+
+    <!-- INFORMATIONS GÉNÉRALES (HORS ONGLETS, VISIBLES PARTOUT) -->
+    
+    <section id="global-header" style="background: #e5e7eb; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+        <h2 class="editable-text">Informations Générales du Projet</h2>
+        <div class="grid-2 sortable-grid">
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">Client</label>
+                <!-- Multi-lignes : case d'une ligne, répartie sur global-client-# (1, 2...) du PDF --><input type="text" id="global-client" data-pdf-multiline="global-client-#">
+            </div>
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">N° projet</label>
+                <input type="text" id="global-no-projet" >
+            </div>
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">Projet</label>
+                <input type="text" id="global-projet" >
+            </div>
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">Date</label>
+                <input type="date" id="global-date" >
+            </div>
+            
+        </div>
+        <div id="last-saved-status" style="width: 100%; color: #475569; font-size: 0.85rem; text-align: center; margin-top: 8px;">Dernière sauvegarde : aucune</div>
+    </section>
+    
+
+    
+
+    <!-- ONGLETS ET SECTIONS DYNAMIQUES -->
+    
+    <section id="tab-form1" class="tab-section" style="display: block; margin-bottom: 20px;">
+        <h2 class="editable-text">Général</h2>
+
+        
+
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Croquis</h3>
+            
+
+            <div id="section-croquis">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="editable-text">Date du croquis</label>
+                                
+                                    <input type="date" id="date">
+                                
+                            
+                        </div>
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="editable-text">Croquis</label>
+                                <!-- Croquis : planche construite par shared/js/croquis_addon.js (outils, toucher, stylet, souris) -->
+                                <div class="sfgen-sketch" data-croquis-pad data-sketch-id="zone_croquis" data-sketch-label="Croquis">
+                                    <input type="hidden" id="zone_croquis__croquis">
+                                </div>
+                            
+                        </div>
+                        
+                    </div>
+                
+
+                
+            </div>
+        </div>
+        
+
+        
+            <!-- MODULE : CARTES DYNAMIQUES OU MATRICE FIXE (# / #-#) -->
+            
+
+            <!-- MODULE : REGISTRE DES TÂCHES & HEURES (JOURNAL) -->
+            
+
+            <!-- MODULE : PHOTOS (4 IMAGES COMPACTÉES BASE64) -->
+            
+
+            <!-- MODULE : GRAPHIQUE CHART.JS -->
+            
+
+            <!-- MODULE : DICTIONNAIRE DE REMARQUES GLOBALES -->
+            
+
+            <!-- MODULE : BLOC SIGNATURE OFFICIEL EN BAS DE FORMULAIRE -->
+            
+            <div class="form-section" style="border-top: 3px solid var(--primary); padding-top: 15px;">
+                <h3 class="editable-text">Signature et Validation</h3>
+                <div class="grid-2 sortable-grid">
+                    <div class="input-group draggable-field">
+                        <label class="editable-text">Préparé par (Nom du technicien)</label>
+                        <input type="text" id="sig-prep-nom" placeholder="Ex: Jean Tremblay">
+                    </div>
+                    <div class="input-group draggable-field">
+                        <label class="editable-text">Date de préparation</label>
+                        <input type="date" id="sig-prep-date">
+                    </div>
+                    
+                </div>
+            </div>
+            
+
+            <small id="form-instructions2" style="color: #242930; font-size: 0.8rem; display: block; margin-top: 3px; margin-bottom: 5px; text-align: center; margin-left: auto; margin-right: auto; max-width: 600px; font-style: italic;">
+                Veuillez exporter le formulaire en PDF pour le soumettre et/ou le sauvegarder avant de fermer la page/l'application.
+            </small>
+        
+
+        <div style="text-align: center; margin: 25px 0 10px 0;">
+            <a href="javascript:void(0);" onclick="scrollToSection('global-header')" style="color: var(--primary); font-weight: bold; text-decoration: none; font-size: 1rem; padding: 10px 20px; background: #e2e8f0; border-radius: 6px; display: inline-block;">
+                ⬆️ Retour au haut du formulaire
+            </a>
+        </div>
+    </section>
+    
+
+</div>
+
+<!-- TEMPLATE POUR CARTES DYNAMIQUES OU MATRICE (# / #-#) -->
+
+
+<!-- TEMPLATE POUR TÂCHES JOURNAL -->
+
+
+<button type="button" onclick="saveReport()" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; background: #10b981; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">💾</button>
+
+<script src="../../../shared/fonts/tahoma.js"></script>
+<script src="tpl_croquis.js"></script>
+<script src="app_croquis.js"></script>
+<script>window.REPORT_CONFIG = { slug: 'croquis', keyPrefix: 'CROQ_', namePrefix: 'englobe_', orgs: ["eng"], photos: true };</script>
+<script src="../../../shared/js/gestion_rapports.js"></script>
+<script src="../../../shared/js/photo_addon.js"></script>
+<script src="../../../shared/js/croquis_addon.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('../../../sw.js');
+        });
+    }
+</script>
+
+
+
+</body>
+</html>

@@ -445,7 +445,7 @@ function loadReport() {
         return;
     }
 
-    const reportDataStr = localStorage.getItem(selectedKey);
+    const reportDataStr = readStoredReport(selectedKey);
     if (!reportDataStr) return;
 
     clearForm();
@@ -537,7 +537,7 @@ function saveReport(isDuplicate = false) {
         if (!baseName.startsWith('planche_')) baseName = `planche_${baseName}`;
 
         // Création de l'identifiant unique invisible
-        saveKey = 'ID_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'ID_' + generateReportId();
     }
 
     const staticData = {};
@@ -569,7 +569,7 @@ function saveReport(isDuplicate = false) {
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     
@@ -632,8 +632,8 @@ function deleteReport() {
 
 async function exportToPDF() {
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) {
             btn.textContent = "⏳ Génération en cours...";
             btn.disabled = true;
@@ -910,9 +910,9 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
+        const btn = document.getElementById('btn-export-pdf');
         if (btn) {
-            btn.textContent = "📄 Exporter en PDF";
+            btn.textContent = "📄 PDF";
             btn.disabled = false;
         }
     }
@@ -921,8 +921,8 @@ async function exportToPDF() {
 /*
 async function exportToPDF() {
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) {
             btn.textContent = "⏳ Génération en cours...";
             btn.disabled = true;
@@ -1173,9 +1173,9 @@ async function exportToPDF() {
     } catch (error) {
         console.error("Erreur lors de l'export PDF :", error);
         showToast("Erreur lors de l'export PDF. Vérifiez la console.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
+        const btn = document.getElementById('btn-export-pdf');
         if (btn) {
-            btn.textContent = "📄 Exporter en PDF";
+            btn.textContent = "📄 PDF";
             btn.disabled = false;
         }
     }

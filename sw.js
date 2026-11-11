@@ -9,7 +9,7 @@
 // 3. Apps ouvertes en ligne : gardées jusqu'à la prochaine mise à jour.
 // Hors ligne, une app non gardée affiche une page d'explication au lieu d'une page blanche.
 
-const CACHE_NAME = 'hub-inspection-v0.4.3.0-db06454701';          // coquille (change dès qu'un fichier du Hub change)
+const CACHE_NAME = 'hub-inspection-v0.5.0.0-4945041ac5';          // coquille (change dès qu'un fichier du Hub change)
 const PIN_CACHE = 'hub-apps-hors-ligne';      // apps gardées sur l'appareil (conservé entre les versions)
 const RECENT_CACHE = 'hub-apps-recentes';     // apps ouvertes depuis la dernière mise à jour
 const STATE_URL = 'hors_ligne_etat.json';     // liste des apps gardées + empreintes (entrée de PIN_CACHE)
@@ -31,13 +31,21 @@ const CORE_ASSETS = [
     "./shared/css/styles.css",
     "./shared/fonts/tahoma.js",
     "./shared/fonts/tahoma.ttf",
+    "./shared/img/logo_entete.png",
+    "./shared/js/croquis_addon.js",
+    "./shared/js/gestion_rapports.js",
     "./shared/js/hub_hors_ligne.js",
+    "./shared/js/photo_addon.js",
+    "./shared/js/tpl_croquis.js",
+    "./shared/js/tpl_photo.js",
     "./shared/libs/chart.umd.min.js",
     "./shared/libs/fontkit.umd.min.js",
     "./shared/libs/pdf-lib.min.js",
+    "./tree/ENG/ICI/GEO/fond-excav/logo_fond-excav.png",
     "./tree/ENG/ICI/MAT/Coulis/logo_coulis.png",
     "./tree/ENG/ICI/MAT/Ech_sol_gran/logo_echsolgra.png",
     "./tree/ENG/ICI/MAT/Pavage/logo_enrob.png",
+    "./tree/ENG/croquis/logo_croquis.png",
     "./tree/GEN/journal/logo_journal.png",
     "./tree/HYB/beton/logo_beton.png",
     "./tree/HYB/compaction/logo_compaction.png",
@@ -47,9 +55,9 @@ const CORE_ASSETS = [
     "./hors_ligne.json"
 ];
 const CORE_HASHES = {
-    "./index.html": "da4c77ff1941",
+    "./index.html": "e21baadab4f3",
     "./manifest.json": "7e9f1eb7484d",
-    "./changelog.html": "42cf749e1bff",
+    "./changelog.html": "9b59da6fde6f",
     "./logo.png": "012c2ea843e0",
     "./icons/icon-128.webp": "e78047b6cf25",
     "./icons/icon-192.webp": "55e1bc203e4d",
@@ -58,16 +66,24 @@ const CORE_HASHES = {
     "./icons/icon-512.webp": "1fa8507d1047",
     "./icons/icon-72.webp": "af98c2bf8aa5",
     "./icons/icon-96.webp": "660c9e9aed7c",
-    "./shared/css/styles.css": "a8d209df2886",
+    "./shared/css/styles.css": "60c33e37089a",
     "./shared/fonts/tahoma.js": "584bf77c1f40",
     "./shared/fonts/tahoma.ttf": "ae34f679d7f3",
+    "./shared/img/logo_entete.png": "ea1b3ab943f5",
+    "./shared/js/croquis_addon.js": "55854df226f0",
+    "./shared/js/gestion_rapports.js": "3f895fe41708",
     "./shared/js/hub_hors_ligne.js": "f18b65cbb6ce",
+    "./shared/js/photo_addon.js": "d419ca97b860",
+    "./shared/js/tpl_croquis.js": "7259e398ee75",
+    "./shared/js/tpl_photo.js": "73f6cfbfb8e1",
     "./shared/libs/chart.umd.min.js": "0797aad65dda",
     "./shared/libs/fontkit.umd.min.js": "ba0c6b5b234c",
     "./shared/libs/pdf-lib.min.js": "0fe9d5550429",
+    "./tree/ENG/ICI/GEO/fond-excav/logo_fond-excav.png": "d65a4b729b39",
     "./tree/ENG/ICI/MAT/Coulis/logo_coulis.png": "95c664f26c1c",
     "./tree/ENG/ICI/MAT/Ech_sol_gran/logo_echsolgra.png": "e62a3a1f7274",
     "./tree/ENG/ICI/MAT/Pavage/logo_enrob.png": "4c3fdba9cd34",
+    "./tree/ENG/croquis/logo_croquis.png": "0702edce9cf7",
     "./tree/GEN/journal/logo_journal.png": "d23c895dfff5",
     "./tree/HYB/beton/logo_beton.png": "f3ae1bb62317",
     "./tree/HYB/compaction/logo_compaction.png": "cae0c7bb665a",

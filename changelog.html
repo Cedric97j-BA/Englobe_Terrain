@@ -11,13 +11,13 @@
         .cl-header h1 { margin: 0; font-size: 1.5rem; letter-spacing: 0.5px; }
         .cl-header p { margin: 4px 0 0; font-size: 0.95rem; opacity: 0.95; }
         .cl-timeline { position: relative; margin: 10px 0 40px; padding-left: 34px; }
-        .cl-timeline::before { content: ""; position: absolute; left: 11px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: linear-gradient(#97c6b9, color-mix(in srgb, #97c6b9 25%, transparent)); }
-        .cl-version { position: relative; margin-bottom: 22px; padding: 18px 20px 14px; border-radius: 12px; background-color: var(--bg-card); border: 1px solid color-mix(in srgb, #97c6b9 35%, var(--border)); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); }
-        .cl-version::before { content: ""; position: absolute; left: -30px; top: 22px; width: 15px; height: 15px; border-radius: 50%; background-color: #ffffff; border: 3px solid #97c6b9; }
-        .cl-version.cl-latest { border-color: #97c6b9; box-shadow: 0 6px 18px color-mix(in srgb, #97c6b9 35%, transparent); }
-        .cl-version.cl-latest::before { background-color: #97c6b9; box-shadow: 0 0 0 4px color-mix(in srgb, #97c6b9 30%, transparent); }
+        .cl-timeline::before { content: ""; position: absolute; left: 11px; top: 8px; bottom: 8px; width: 3px; border-radius: 3px; background: linear-gradient(var(--brand-primary, #97c6b9), color-mix(in srgb, var(--brand-primary, #97c6b9) 25%, transparent)); }
+        .cl-version { position: relative; margin-bottom: 22px; padding: 18px 20px 14px; border-radius: 12px; background-color: var(--bg-card); border: 1px solid color-mix(in srgb, var(--brand-primary, #97c6b9) 35%, var(--border)); box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06); }
+        .cl-version::before { content: ""; position: absolute; left: -30px; top: 22px; width: 15px; height: 15px; border-radius: 50%; background-color: #ffffff; border: 3px solid var(--brand-primary, #97c6b9); }
+        .cl-version.cl-latest { border-color: var(--brand-primary, #97c6b9); box-shadow: 0 6px 18px color-mix(in srgb, var(--brand-primary, #97c6b9) 35%, transparent); }
+        .cl-version.cl-latest::before { background-color: var(--brand-primary, #97c6b9); box-shadow: 0 0 0 4px color-mix(in srgb, var(--brand-primary, #97c6b9) 30%, transparent); }
         .cl-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-bottom: 12px; }
-        .cl-num { display: inline-block; padding: 3px 12px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; color: #1e293b; background-color: color-mix(in srgb, #97c6b9 55%, #ffffff); }
+        .cl-num { display: inline-block; padding: 3px 12px; border-radius: 999px; font-weight: 700; font-size: 0.9rem; color: #1e293b; background-color: color-mix(in srgb, var(--brand-primary, #97c6b9) 55%, #ffffff); }
         .cl-title { margin: 0; padding: 0; background: none; border: none; font-size: 1.1rem; color: var(--text-main); }
         .cl-new-badge { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.6px; color: #3f7a69; }
         .cl-list { list-style: none; margin: 0; padding: 0; }
@@ -29,10 +29,10 @@
         .tag-amelioration { color: #1e40af; background-color: #dbeafe; }
 
         body.dark-mode .cl-version { background-color: #1e293b; border-color: #334155; box-shadow: none; }
-        body.dark-mode .cl-version.cl-latest { border-color: #97c6b9; }
+        body.dark-mode .cl-version.cl-latest { border-color: var(--brand-primary, #97c6b9); }
         body.dark-mode .cl-version::before { background-color: #0f172a; }
-        body.dark-mode .cl-version.cl-latest::before { background-color: #97c6b9; }
-        body.dark-mode .cl-num { color: #0f172a; background-color: #97c6b9; }
+        body.dark-mode .cl-version.cl-latest::before { background-color: var(--brand-primary, #97c6b9); }
+        body.dark-mode .cl-num { color: #0f172a; background-color: var(--brand-primary, #97c6b9); }
         body.dark-mode .cl-title { color: #f1f5f9; background: none; }
         body.dark-mode .cl-new-badge { color: #a8d4c7; }
         body.dark-mode .cl-list li { border-top-color: #334155; color: #e2e8f0; }
@@ -53,7 +53,7 @@
 <body>
 <div id="app-container" class="cl-wrap">
 
-    <header class="cl-header" style="display: flex; align-items: center; gap: 15px; background: #97c6b9; color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+    <header class="cl-header" style="display: flex; align-items: center; gap: 15px; background: var(--brand-primary, #97c6b9); color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <div>
             <h1>Historique des mises à jour</h1>
             <p>Nouveautés, corrections et améliorations du Hub et des formulaires</p>
@@ -64,7 +64,33 @@
     <div class="cl-timeline">
 
         <section class="cl-version cl-latest">
-            <div class="cl-head"><span class="cl-num">v0.4.0.0</span><h2 class="cl-title">Application Android et Nouveaux Formulaires</h2><span class="cl-new-badge">Dernière version</span></div>
+            <div class="cl-head"><span class="cl-num">v0.5.0.0</span><h2 class="cl-title">Nouveaux formulaires, croquis et photos annexés, Béton MTQ et Hub hors ligne</h2><span class="cl-new-badge">Dernière version</span></div>
+            <ul class="cl-list">
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Nouveaux formulaires :</strong> <strong>Fond d'excavation</strong> (description des matériaux, conditions d'eau, comparaison avec l'étude géotechnique, état du fond et des parois, actions à prendre, échantillons et photos) et <strong>Croquis</strong>, une application autonome de dessin technique qui produit une page de croquis officielle en PDF.</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Croquis annexé :</strong> planche à dessin pour iOS, Android et Windows (doigt, stylet ou souris, paume ignorée) avec Crayon, Ligne droite, Flèche, Texte / Cotes, Grille, Efface et annulation. La case « ✏️ Joindre un croquis annexé à ce rapport » ajoute une page de croquis à la fin du PDF, avec la date, le client, le projet et le technicien repris du formulaire. Offert dans : Fond d'excavation, Rapport de béton, Rapport de compactage, Rapport de coulis, Échantillonnage sols et granulats, Enrobé bitumineux, Planche de référence, Journal de chantier, Journal de chantier (Nouveau) et Journal photo.</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Annexe photo :</strong> photos prises ou choisies directement dans le rapport, avec numéro, date, chaînage, identification et légende (ordre modifiable). Dans Fond d'excavation, l'outil apparaît dans la section Photos dès que « Oui » est coché ; ailleurs, case « 📷 Joindre une annexe photo à ce rapport ». Les pages « Document photographique » (2 photos par page, n° de projet, client et technicien en en-tête) sont ajoutées à la fin du PDF, y compris du PDF MTQ.</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Apps hors ligne au choix :</strong> bouton « Garder hors ligne » sur chaque carte, « Garder hors ligne les apps affichées » (selon les filtres) et « Seulement les apps gardées ». Une mise à jour ne retélécharge que les fichiers modifiés ; une app non gardée affiche une explication claire hors connexion ; le stockage de l'appareil est protégé quand le navigateur le permet.</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Partage des rapports :</strong> bouton « 📤 PARTAGER » (feuille de partage du téléphone, de la tablette ou de l'application Android) et « 📥 Importer » pour ouvrir un rapport reçu, avec vérification du formulaire, choix entre écraser ou garder une copie, et repère 📲 sur les rapports reçus. Le croquis et les photos voyagent avec le rapport.</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Diagnostic de l'appareil :</strong> état réel de la connexion (Wi-Fi de chantier sans Internet détecté), mode hors ligne, rapports sauvegardés par formulaire avec leur taille, espace utilisé et bouton « Copier le diagnostic » pour le soutien technique.</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Béton :</strong> volume cumulatif calculé en temps réel et affiché dans l'en-tête de chaque camion (« Cum : X-Y m³ »).</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Béton :</strong> temps de retardant par camion et heure maximale de fin de déchargement calculée automatiquement (2 h 00 + retardant).</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span><strong>Béton :</strong> alertes en rouge lorsque l'affaissement ou la teneur en air sortent des exigences du devis (le √ SP retire l'alerte d'affaissement) ou que le délai maximal de déchargement est dépassé ; exigences saisies en deux cases (ex. « 80 ± 30 », « 5 @ 8 »).</span></li>
+                <li><span class="cl-tag tag-nouveau">Nouveau</span><span><strong>Béton – Mode MTQ :</strong> commutateur compact « MTQ ». Les champs du formulaire du Ministère apparaissent en bleu acier à côté de leurs équivalents (en-tête, conditions atmosphériques, mise en place, équipements, cartes camion avec air et affaissement après pompe, fiches d'échantillons, laboratoire) et l'export PDF MTQ répète la page des camions par blocs de 10 et la page des échantillons par paires.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span><strong>Photos plus légères et stockage sans limite de 5 Mo :</strong> chaque photo est réduite automatiquement sur l'appareil (1200 px, JPEG) et enregistrée dans la base IndexedDB du navigateur ; elle se sauvegarde, se recharge, se supprime et se partage avec son rapport. Le Journal photo et le Journal de chantier (Nouveau) en profitent aussi.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span><strong>Panneau des rapports uniformisé</strong> dans tous les formulaires (Nouveau, Charger, Importer, Sauvegarder, Dupliquer, Supprimer) et barre « Exportation et transmission » commune.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span><strong>Apparence :</strong> l'en-tête de chaque formulaire prend la couleur de sa carte du Hub (vert, bleu, diagonale pour les formulaires hybrides), cartes du Hub plus contrastées, logo et couleurs de l'organisation communs à toutes les pages (pages plus légères à garder hors ligne) et Mode nuit en interrupteur compact dans l'en-tête.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span><strong>Lisibilité des formulaires :</strong> sous-sections mieux espacées, cases à cocher de sous-éléments regroupées côte à côte, libellés vides retirés et titre « Remarques » affiché une seule fois.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span>Les textes longs (client, projet, remarques) sont répartis automatiquement sur les lignes prévues du PDF.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span>Carte « Enrobé bitumineux » : l'essai de concordance est maintenant offert.</span></li>
+                <li><span class="cl-tag tag-amelioration">Amélioration</span><span>Nouvelle présentation de l'historique des mises à jour (chronologie, une carte par version).</span></li>
+                <li><span class="cl-tag tag-correction">Correction</span><span><strong>Coulis :</strong> « Genre et lieu des travaux », l'expansion totale, la pression d'injection et le nombre de sacs sont maintenant imprimés dans le PDF ; ajout du champ « N° rapport ».</span></li>
+                <li><span class="cl-tag tag-correction">Correction</span><span>Champs de date lisibles et alignés sur iPad, en paysage comme en portrait (tous les formulaires).</span></li>
+                <li><span class="cl-tag tag-correction">Correction</span><span>Chaque formulaire charge ses modèles PDF, sa police et ses bibliothèques depuis le Hub, à la bonne profondeur de dossier : export PDF vérifié dans tous les formulaires, en ligne comme hors ligne.</span></li>
+            </ul>
+        </section>
+
+        <section class="cl-version">
+            <div class="cl-head"><span class="cl-num">v0.4.0.0</span><h2 class="cl-title">Application Android et Nouveaux Formulaires</h2></div>
             <ul class="cl-list">
                 <li><span class="cl-tag tag-nouveau">Nouveau</span><span>Déploiement de l'outil sous forme d'application native Android.</span></li>
                 <li><span class="cl-tag tag-nouveau">Nouveau</span><span>Ajout des applications "Essai de concordance" et "Coulis".</span></li>

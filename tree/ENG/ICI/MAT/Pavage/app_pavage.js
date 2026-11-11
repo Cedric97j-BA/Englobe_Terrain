@@ -304,7 +304,7 @@ function loadReport() {
     const selectedKey = dropdown.value;
     if (!selectedKey) { showToast("Veuillez d'abord sélectionner un rapport.", "info"); return; }
 
-    const reportDataStr = localStorage.getItem(selectedKey);
+    const reportDataStr = readStoredReport(selectedKey);
     if (!reportDataStr) return;
 
     clearForm();
@@ -348,7 +348,7 @@ function saveReport(isDuplicate = false) {
         
         baseName = userPromptName.trim() || baseName;
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
-        saveKey = 'PAVAGE_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        saveKey = 'PAVAGE_' + generateReportId();
     } else {
         // Mise à jour dynamique intelligente du nom de base pour refléter le no de projet actuel
         baseName = `englobe_${rawDate}_${noProjet}_CONC-PAVAGE_${techInitials}`;
@@ -366,7 +366,7 @@ function saveReport(isDuplicate = false) {
         timestamp: new Date().getTime()
     };
 
-    localStorage.setItem(saveKey, JSON.stringify(reportData));
+    if (!storeReport(saveKey, reportData, isDuplicate)) return;
     currentActiveReportKey = saveKey; 
     updateLastSavedStatus(reportData.timestamp);
     updateDropdown();
@@ -448,8 +448,8 @@ async function exportToPDF() {
     }
 
     try {
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        const originalText = btn ? btn.textContent : "📄 Exporter en PDF";
+        const btn = document.getElementById('btn-export-pdf');
+        const originalText = btn ? btn.textContent : "📄 PDF";
         if (btn) { btn.textContent = "⏳ Génération..."; btn.disabled = true; }
 
         const getBuffer = (base64) => {
@@ -591,7 +591,7 @@ async function exportToPDF() {
     } catch (error) {
         console.error(error);
         showToast("Erreur lors de l'export PDF.", "error");
-        const btn = document.querySelector('button[onclick="exportToPDF()"]');
-        if (btn) { btn.textContent = "📄 Exporter en PDF"; btn.disabled = false; }
+        const btn = document.getElementById('btn-export-pdf');
+        if (btn) { btn.textContent = "📄 PDF"; btn.disabled = false; }
     }
 }

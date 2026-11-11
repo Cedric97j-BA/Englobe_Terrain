@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Fond d'excavation</title>
+    
+    <link rel="stylesheet" href="../../../../../shared/css/styles.css?v=v0.5.0.0">
+    <link rel="apple-touch-icon" href="logo_fond-excav.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Fond d'excavation">
+
+    
+    <script src="../../../../../shared/libs/pdf-lib.min.js"></script>
+    <script src="../../../../../shared/libs/fontkit.umd.min.js"></script>
+</head>
+<body data-org="eng" data-secteur="ici" data-service="geo" data-brand-name="Englobe">
+
+
+
+<div id="app-container">
+
+    <!-- EN-TÊTE OFFICIEL : image de marque de l'organisation (nom, logo shared/img/, couleur --brand-primary) -->
+    <header style="display: flex; align-items: center; gap: 15px; background: var(--brand-primary, #97c6b9); color: white; padding: 15px 20px; border-radius: 8px; margin-bottom: 20px; margin-top: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        
+        <img class="brand-logo" src="../../../../../shared/img/logo_entete.png" alt="Englobe" style="height: 75px; padding: 5px; border-radius: 4px;"> 
+
+
+        <div style="display: flex; flex-direction: column; gap: 5px;">
+            <h1 class="editable-text" style="margin: 0; font-size: 1.5rem; letter-spacing: 0.5px;">Fond d'excavation</h1>
+        </div>
+
+        <a class="home-button" href="../../../../../index.html" style="margin-left: auto; background: #1e293b; color: white; text-decoration: none; padding: 10px 15px; border-radius: 6px; font-weight: bold; font-size: 0.9rem; display: flex; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+            🏠 Accueil
+        </a>
+    </header>
+
+    <!-- GESTION DES RAPPORTS (SAUVEGARDE LOCALE) -->
+    <section id="save-manager" style="background: #1e293b; color: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+        <div style="flex: 1; min-width: 250px; max-width: 500px;">
+            <label style="display: block; font-size: 0.85rem; margin-bottom: 5px; color: #cbd5e1;">Rapports Sauvegardés (Appareil Local)<span id="imported-indicator" title="Rapport reçu d'un autre appareil" style="display:none; background:#0d9488; color:#fff; border-radius:4px; padding:1px 5px; font-size:0.75rem; margin-left:6px;">📲</span></label>
+            <select id="saved-reports-dropdown" style="width: 100%; padding: 10px; border-radius: 4px; border: none; font-weight: bold; color: #334155;">
+                <option value="">-- Sélectionnez un rapport --</option>
+            </select>
+        </div>
+
+        <div class="report-actions">
+            <button type="button" class="report-btn" onclick="newReportPrompt()" style="--btn-bg: #0284c7;">➕ Nouveau</button>
+            <button type="button" class="report-btn" onclick="loadReport()" style="--btn-bg: #2563eb;">📂 Charger</button>
+            <button type="button" class="report-btn" onclick="triggerJsonImport()" style="--btn-bg: #0d9488;">📥 Importer</button>
+            <button type="button" class="report-btn" onclick="saveReport()" style="--btn-bg: #10b981;">💾 Sauvegarder</button>
+            <button type="button" class="report-btn" onclick="saveReport(true)" style="--btn-bg: #4f46e5;">📑 Dupliquer</button>
+            <button type="button" class="report-btn" onclick="deleteReport()" style="--btn-bg: #ef4444;">🗑️ Supprimer</button>
+            <input type="file" id="json-import-input" accept=".json,application/json,text/plain" style="display:none" onchange="importReportJson(event)">
+        </div>
+
+        <!-- EXPORTATION & TRANSMISSION -->
+        <div class="export-bar">
+            <button type="button" id="btn-export-pdf" class="report-btn report-btn-main" onclick="exportToPDF('eng')" style="--btn-bg: #7c3aed;">📄 PDF</button>
+            <button type="button" class="report-btn" onclick="shareReportJson()" style="--btn-bg: #0f766e;">📤 PARTAGER</button>
+            <button type="button" id="btn-export-lims" class="report-btn report-btn-lims is-frozen" style="--btn-bg: #334155;" title="Connexion LIMS bientôt disponible" disabled>🔒 LIMS</button>
+        </div>
+    </section>
+
+    <!-- INFORMATIONS GÉNÉRALES (HORS ONGLETS, VISIBLES PARTOUT) -->
+    
+    <section id="global-header" style="background: #e5e7eb; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
+        <h2 class="editable-text">Informations Générales du Projet</h2>
+        <div class="grid-2 sortable-grid">
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">Client</label>
+                <input type="text" id="global-client" >
+            </div>
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">N° projet</label>
+                <input type="text" id="global-no-projet" >
+            </div>
+            
+            <div class="input-group draggable-field " style="">
+                <label class="editable-text">Adresse du projet</label>
+                <input type="text" id="global-adresse" >
+            </div>
+            
+            <div class="input-group draggable-field " style="">
+                <label class="editable-text">Entrepreneur général</label>
+                <input type="text" id="global-entr-gen" >
+            </div>
+            
+            <div class="input-group draggable-field " style="">
+                <label class="editable-text">Entrepreneur excavation</label>
+                <input type="text" id="global-entr-exc" >
+            </div>
+            
+            <div class="input-group draggable-field " style="">
+                <label class="editable-text">Type d'ouvrage</label>
+                <input type="text" id="global-type-ouvrage" >
+            </div>
+            
+            <div class="input-group draggable-field " style="">
+                <label class="editable-text">Partie inspectée</label>
+                <input type="text" id="global-partie-inspecte" >
+            </div>
+            
+            <div class="input-group draggable-field " style="">
+                <label class="editable-text">Dimensions de l'excavation</label>
+                <input type="text" id="global-dim-exc" >
+            </div>
+            
+            <div class="input-group draggable-field full-width" style="grid-column: 1 / -1; ">
+                <label class="editable-text">Date</label>
+                <input type="date" id="global-date" >
+            </div>
+            
+        </div>
+        <div id="last-saved-status" style="width: 100%; color: #475569; font-size: 0.85rem; text-align: center; margin-top: 8px;">Dernière sauvegarde : aucune</div>
+    </section>
+    
+
+    
+    <small id="form-instructions" class="form-instructions" style="color: #242930; font-size: 0.8rem; display: block; margin-top: 3px; margin-bottom: 5px; text-align: center; margin-left: auto; margin-right: auto; max-width: 600px; font-style: italic;">
+        Cliquez sur les onglets pour naviguer entre les sections du formulaire. Prenez soin de bien sauvegarder votre rapport avant de quitter la page ou de fermer l'application.
+    </small>
+
+    <!-- BARRE DE NAVIGATION (TABS) -->
+    <nav id="form-navigation" style="margin-bottom: 20px;">
+        
+        <button type="button" class="tab-btn active" onclick="showTab('tab-form1', event)">1. Vérifications</button>
+        
+        <button type="button" class="tab-btn " onclick="showTab('tab-form2', event)">2. Actions à prendre</button>
+        
+    </nav>
+    
+
+    <!-- ONGLETS ET SECTIONS DYNAMIQUES -->
+    
+    <section id="tab-form1" class="tab-section" style="display: block; margin-bottom: 20px;">
+        <h2 class="editable-text">1. Vérifications</h2>
+
+        
+
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Description des matériaux</h3>
+            
+
+            <div id="section-description-des-mat-riaux">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="editable-text">Description</label>
+                                <!-- Multi-lignes : réparti sur desc-text-# (1, 2...) du PDF -->
+                                    <textarea id="desc-text" rows="2" data-pdf-multiline="desc-text-#" style="width: 100%;"></textarea>
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-granulaire">
+                                    <span class="editable-text">Granulaire</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-remblai">
+                                    <span class="editable-text">Remblai</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-argileux">
+                                    <span class="editable-text">Argileux</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-roc">
+                                    <span class="editable-text">Roc</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-organique">
+                                    <span class="editable-text">Organique</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+                    
+                        
+                        <h4 class="editable-text sfgen-sub-title">Compacité (Granulaire)</h4>
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-comp-tlache">
+                                    <span class="editable-text">Très lâche</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-comp-lache">
+                                    <span class="editable-text">Lâche</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-comp-compacte">
+                                    <span class="editable-text">Compacte</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-comp-dense">
+                                    <span class="editable-text">Dense</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-comp-tdense">
+                                    <span class="editable-text">Très dense</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+                    
+                        
+                        <h4 class="editable-text sfgen-sub-title">Consistance (Argileuse)</h4>
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-cons-tmolle">
+                                    <span class="editable-text">Très molle</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-cons-molle">
+                                    <span class="editable-text">Molle</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-cons-ferme">
+                                    <span class="editable-text">Ferme</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-cons-raide">
+                                    <span class="editable-text">Raide</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="desc-cons-traide">
+                                    <span class="editable-text">Très raide</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Conditions d'eau</h3>
+            
+
+            <div id="section-conditions-d-eau">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cond-pas-eau">
+                                    <span class="editable-text">Pas d'eau</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cond-sp">
+                                    <span class="editable-text">Suintement provenant</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width subitem-checks" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;"><div class="subitem-check-row">
+                            <label class="checkbox-label"><input type="checkbox" id="cond-sp-fond"><span class="editable-text">du fond</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="cond-sp-parois"><span class="editable-text">des parois</span></label>
+                        </div></div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="cond-arriv">
+                                    <span class="editable-text">Arrivée d'eau</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width subitem-checks" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;"><div class="subitem-check-row">
+                            <label class="checkbox-label"><input type="checkbox" id="cond-arriv-eau-faible"><span class="editable-text">Faible</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="cond-arriv-eau-moy"><span class="editable-text">Moyenne</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="cond-arriv-eau-forte"><span class="editable-text">Forte</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="cond-arriv-prov-fond"><span class="editable-text">provenant du fond</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="cond-arriv-prov-parois"><span class="editable-text">provenant des parois</span></label>
+                        </div></div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Comparaisons avec l'étude géotechnique</h3>
+            
+
+            <div id="section-comparaisons-avec-l-tude-g-otechnique">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="comp-pas-etude">
+                                    <span class="editable-text">Pas d'étude</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+                    
+                        
+                        <hr class="sfgen-sub-sep" data-sub-title="NAT">
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="comp-nat-semblable">
+                                    <span class="editable-text">semblable</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="comp-nat-differente">
+                                    <span class="editable-text">différente</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+                    
+                        
+                        <hr class="sfgen-sub-sep" data-sub-title="COND">
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="comp-cond-semblable">
+                                    <span class="editable-text">semblables</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="comp-cond-differente">
+                                    <span class="editable-text">différentes</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">État du fond d'excavation</h3>
+            
+
+            <div id="section-tat-du-fond-d-excavation">
+                
+                    
+                        
+                        <hr class="sfgen-sub-sep" data-sub-title="FE">
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-fe-uni-1-hor">
+                                    <span class="editable-text">horizontal</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-fe-uni-1-inc">
+                                    <span class="editable-text">incliné</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-fe-uni-2-uni">
+                                    <span class="editable-text">uni</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-fe-uni-2-irr">
+                                    <span class="editable-text">irrégulier</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-fe-stab-stab">
+                                    <span class="editable-text">stable</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-fe-stab-instab">
+                                    <span class="editable-text">instable</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">État des parois d'excavation</h3>
+            
+
+            <div id="section-tat-des-parois-d-excavation">
+                
+                    
+                        
+                        <hr class="sfgen-sub-sep" data-sub-title="PE">
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-pe-uni-uni">
+                                    <span class="editable-text">unies</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-pe-uni-irr">
+                                    <span class="editable-text">irrégulières</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-pe-stab-stab">
+                                    <span class="editable-text">stables</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="etat-pe-stab-instab">
+                                    <span class="editable-text">instables</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+                    
+                        
+                        <h4 class="editable-text sfgen-sub-title">PENTE</h4>
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="editable-text">Horizontale</label>
+                                
+                                    <input type="text" id="etat-pente-h" 
+                                    
+                                    
+                                     placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="editable-text">Verticale</label>
+                                
+                                    <input type="text" id="etat-pente-v" 
+                                    
+                                    
+                                     placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+
+        
+
+        <div style="text-align: center; margin: 25px 0 10px 0;">
+            <a href="javascript:void(0);" onclick="scrollToSection('form-instructions')" style="color: var(--primary); font-weight: bold; text-decoration: none; font-size: 1rem; padding: 10px 20px; background: #e2e8f0; border-radius: 6px; display: inline-block;">
+                ⬆️ Retour au haut du formulaire
+            </a>
+        </div>
+    </section>
+    
+    <section id="tab-form2" class="tab-section" style="display: none; margin-bottom: 20px;">
+        <h2 class="editable-text">2. Actions à prendre</h2>
+
+        
+
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Actions à prendre</h3>
+            
+
+            <div id="section-actions-prendre">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-aucune">
+                                    <span class="editable-text">Aucune action, fond adéquat et acceptable</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-assecher">
+                                    <span class="editable-text">Assécher l'excavation</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-profiler">
+                                    <span class="editable-text">Profiler la surface (faire des pentes) pour favoriser le drainage</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-regaler">
+                                    <span class="editable-text">Régaler la surface</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-compacter">
+                                    <span class="editable-text">Compacter les matériaux</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-trans">
+                                    <span class="editable-text">Faire des transitions entre les matériaux de nature nature différente de :</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                <label class="editable-text">Horizontale (m)</label>
+                                
+                                    <input type="number" id="act-trans-hor" step="any" inputmode="decimal" oninput="this.value = this.value.replace(/[^0-9.,-]/g, ''); setTimeout(runCustomCalculations, 0);" placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                <label class="editable-text">Verticale (m)</label>
+                                
+                                    <input type="number" id="act-trans-vert" step="any" inputmode="decimal" oninput="this.value = this.value.replace(/[^0-9.,-]/g, ''); setTimeout(runCustomCalculations, 0);" placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-excav">
+                                    <span class="editable-text">Excaver :</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width subitem-checks" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;"><div class="subitem-check-row">
+                            <label class="checkbox-label"><input type="checkbox" id="act-excav-mous"><span class="editable-text">Sols mous</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="act-excav-vaseux"><span class="editable-text">Sols vaseux</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="act-excav-instable"><span class="editable-text">Sols instables</span></label>
+                        
+                        
+                        
+                        
+                        
+                            <label class="checkbox-label"><input type="checkbox" id="act-excav-terre"><span class="editable-text">Terre végétale</span></label>
+                        </div></div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-remp">
+                                    <span class="editable-text">Remplacer les sols excavées avec</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                
+                                
+                                    <input type="text" id="act-remp-txt" 
+                                    
+                                    
+                                     placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                <label class="editable-text">Compacté à au moins (%)</label>
+                                
+                                    <input type="number" id="act-remp-comp" step="0.1" inputmode="decimal" oninput="this.value = this.value.replace(/[^0-9.,-]/g, ''); setTimeout(runCustomCalculations, 0);" placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                <label class="editable-text">Protocole modifié par couche de (mm)</label>
+                                
+                                    <input type="number" id="act-remp-proc" step="1" inputmode="decimal" oninput="this.value = this.value.replace(/[^0-9.,-]/g, ''); setTimeout(runCustomCalculations, 0);" placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="1" style="margin-left: 24px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="act-excav-autres">
+                                    <span class="editable-text">Autres</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field full-width" data-indent-level="2" style="margin-left: 48px; border-left: 3px solid #94a3b8; padding-left: 12px;">
+                            
+                                <label class="editable-text">Autres</label>
+                                
+                                    <input type="text" id="act-excav-autres-text" 
+                                    
+                                    
+                                     placeholder="">
+                                
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Échantillons prélevés</h3>
+            
+
+            <div id="section-chantillons-pr-lev-s">
+                
+                    
+                        
+                        <hr class="sfgen-sub-sep" data-sub-title="PRELEV">
+                        
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="ech-prelev-oui">
+                                    <span class="editable-text">Oui</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="ech-prelev-non">
+                                    <span class="editable-text">Non</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Photos</h3>
+            
+
+            <div id="section-photos">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="photos-oui">
+                                    <span class="editable-text">Oui</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="photos-non">
+                                    <span class="editable-text">Non</span>
+                                </label>
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+                <!-- Annexe photo (shared/js/photo_addon.js) : outil photo visible quand la case photos-oui est cochée -->
+                <div class="photo-annex-block" data-photo-annex data-photo-trigger="photos-oui" hidden></div>
+                
+
+                
+            </div>
+        </div>
+        
+        <div class="form-section">
+            
+            <h3 class="editable-text">Remarques</h3>
+            
+
+            <div id="section-remarques">
+                
+                    
+                    <div class="grid-2 sortable-grid">
+                        
+                        
+                        <div class="input-group draggable-field " data-indent-level="0" style="">
+                            
+                                
+                                <!-- Multi-lignes : réparti sur rem-text-# (1, 2...) du PDF -->
+                                    <textarea id="rem-text" rows="2" data-pdf-multiline="rem-text-#" style="width: 100%;"></textarea>
+                                
+                            
+                        </div>
+                        
+                        
+                    </div>
+                
+
+                
+
+                
+            </div>
+        </div>
+        
+
+        
+            <!-- MODULE : CARTES DYNAMIQUES OU MATRICE FIXE (# / #-#) -->
+            
+
+            <!-- MODULE : REGISTRE DES TÂCHES & HEURES (JOURNAL) -->
+            
+
+            <!-- MODULE : PHOTOS (4 IMAGES COMPACTÉES BASE64) -->
+            
+
+            <!-- MODULE : GRAPHIQUE CHART.JS -->
+            
+
+            <!-- MODULE : DICTIONNAIRE DE REMARQUES GLOBALES -->
+            
+
+            <!-- MODULE : BLOC SIGNATURE OFFICIEL EN BAS DE FORMULAIRE -->
+            
+            <div class="form-section" style="border-top: 3px solid var(--primary); padding-top: 15px;">
+                <h3 class="editable-text">Signature et Validation</h3>
+                <div class="grid-2 sortable-grid">
+                    <div class="input-group draggable-field">
+                        <label class="editable-text">Préparé par (Nom du technicien)</label>
+                        <input type="text" id="sig-prep-nom" placeholder="Ex: Jean Tremblay">
+                    </div>
+                    <div class="input-group draggable-field">
+                        <label class="editable-text">Date de préparation</label>
+                        <input type="date" id="sig-prep-date">
+                    </div>
+                    
+                </div>
+            </div>
+            
+
+            <small id="form-instructions2" style="color: #242930; font-size: 0.8rem; display: block; margin-top: 3px; margin-bottom: 5px; text-align: center; margin-left: auto; margin-right: auto; max-width: 600px; font-style: italic;">
+                Veuillez exporter le formulaire en PDF pour le soumettre et/ou le sauvegarder avant de fermer la page/l'application.
+            </small>
+        
+
+        <div style="text-align: center; margin: 25px 0 10px 0;">
+            <a href="javascript:void(0);" onclick="scrollToSection('form-instructions')" style="color: var(--primary); font-weight: bold; text-decoration: none; font-size: 1rem; padding: 10px 20px; background: #e2e8f0; border-radius: 6px; display: inline-block;">
+                ⬆️ Retour au haut du formulaire
+            </a>
+        </div>
+    </section>
+    
+
+</div>
+
+<!-- TEMPLATE POUR CARTES DYNAMIQUES OU MATRICE (# / #-#) -->
+
+
+<!-- TEMPLATE POUR TÂCHES JOURNAL -->
+
+
+<button type="button" onclick="saveReport()" style="position: fixed; bottom: 15px; right: 15px; z-index: 9999; background: #10b981; color: white; border: none; width: 60px; height: 60px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.3); font-size: 1.5rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">💾</button>
+
+<script src="../../../../../shared/fonts/tahoma.js"></script>
+<script src="tpl_fond-excav.js"></script>
+<script src="app_fond-excav.js"></script>
+<script>window.REPORT_CONFIG = { slug: 'fond-excav', keyPrefix: 'FEXC_', namePrefix: 'englobe_', orgName: "Englobe", orgs: ["eng"], croquis: true };</script>
+<script src="../../../../../shared/js/gestion_rapports.js"></script>
+<script src="../../../../../shared/js/photo_addon.js"></script>
+<script src="../../../../../shared/js/croquis_addon.js"></script>
+<script>
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('../../../../../sw.js');
+        });
+    }
+</script>
+
+
+
+</body>
+</html>

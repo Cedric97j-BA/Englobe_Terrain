@@ -234,26 +234,59 @@ function newReportPrompt() {
     showToast("Écran réinitialisé.", "success");
 }
 
+// Date du jour à l'heure LOCALE (toISOString() donne la date UTC : après 19 h au Québec,
+// c'était déjà la date du lendemain dans le nom du rapport et du PDF).
+function localToday() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 function saveReport(isDuplicate = false) {
     let saveKey = currentActiveReportKey;
 
     const noProjet = document.getElementById('global-no-projet')?.value.trim() || 'SANS-NUMERO';
-    const rawDate = document.getElementById('global-date')?.value || new Date().toISOString().split('T')[0];
+    const rawDate = document.getElementById('global-date')?.value || localToday();
     const techName = document.getElementById('sig-prep-nom')?.value || '';
     const techInitials = techName.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
-    
+
     let baseName = `englobe_${rawDate}_${noProjet}_COULIS_${techInitials}`;
+    const autoBaseName = baseName; // nom automatique avec les champs ACTUELS
+    let autoNameToSave = baseName; // dernier nom automatique (pour savoir si l'utilisateur l'a modifié)
 
     if (!saveKey || isDuplicate) {
         if (isDuplicate) baseName += "_copie";
+        autoNameToSave = baseName;
         let userPromptName = prompt(isDuplicate ? "Nom pour la COPIE :" : "Nom de sauvegarde du rapport :", baseName);
-        if (userPromptName === null) return; 
-        
+        if (userPromptName === null) return;
+
         baseName = userPromptName.trim() || baseName;
         if (!baseName.startsWith('englobe_')) baseName = `englobe_${baseName}`;
         saveKey = 'COULIS_' + generateReportId();
     } else {
-        baseName = `englobe_${rawDate}_${noProjet}_COULIS_${techInitials}`;
+        // MISE À JOUR (correctif 2026-11-25, même règle que Béton) : on GARDE le nom choisi par
+        // l'utilisateur. Avant, chaque sauvegarde remplaçait le nom par le nom automatique :
+        // le rapport « changeait de nom » dans la liste et semblait disparaître.
+        // Si le nom est encore le nom automatique, il suit les champs actuels.
+        const existingDataStr = localStorage.getItem(saveKey);
+        if (existingDataStr) {
+            try {
+                const existingData = JSON.parse(existingDataStr);
+                if (existingData.displayName) {
+                    const oldName = existingData.displayName;
+                    const copySuffix = oldName.endsWith('_copie') ? '_copie' : '';
+                    const wasAutoName = existingData.autoName
+                        ? oldName === existingData.autoName
+                        : /_COULIS_[A-Z]*$|_SANS-NUMERO_|_TECH(_|$)/.test(oldName);
+                    if (wasAutoName) {
+                        baseName = autoBaseName + copySuffix;
+                        autoNameToSave = baseName;
+                    } else {
+                        baseName = oldName;
+                        autoNameToSave = existingData.autoName;
+                    }
+                }
+            } catch (e) {}
+        }
     }
 
     const staticData = {};
@@ -275,7 +308,8 @@ function saveReport(isDuplicate = false) {
     });
 
     const reportData = {
-        displayName: baseName, 
+        displayName: baseName,
+        autoName: autoNameToSave,
         static: staticData,
         samples: samplesData,
         timestamp: new Date().getTime()
@@ -417,11 +451,10 @@ async function exportToPDF() {
         const finalPdf = await PDFLib.PDFDocument.create();
         if (typeof fontkit !== 'undefined') finalPdf.registerFontkit(fontkit);
         
-        let tahomaFont = null;
-        if (typeof TAHOMA_FONT !== 'undefined') {
-            const fontBytes = new Uint8Array(getBuffer(TAHOMA_FONT));
-            tahomaFont = await finalPdf.embedFont(fontBytes);
-        }
+        // Police Tahoma : elle doit être intégrée dans CHAQUE page modèle (tempPdf) qui l'utilise,
+        // comme dans Béton/Pavage. Intégrée dans finalPdf, les champs pointaient vers un mauvais objet :
+        // lettres/symboles bizarres dans le PDF, qui disparaissaient quand on retouchait le champ.
+        const fontBytes = typeof TAHOMA_FONT !== 'undefined' ? new Uint8Array(getBuffer(TAHOMA_FONT)) : null;
 
         const cards = document.querySelectorAll('.sample-card');
         const numEssais = cards.length;
@@ -431,6 +464,8 @@ async function exportToPDF() {
             const tempPdf = await PDFLib.PDFDocument.load(getBuffer(TEMPLATE_COULIS));
             if (typeof fontkit !== 'undefined') tempPdf.registerFontkit(fontkit);
             const form = tempPdf.getForm();
+            let tahomaFont = null;
+            if (fontBytes) { try { tahomaFont = await tempPdf.embedFont(fontBytes); } catch (e) { tahomaFont = null; } }
 
             const trySetText = (id, val) => { try { form.getTextField(id).setText(val || ''); } catch(e){} };
             const trySetCheck = (id, isChecked) => { try { isChecked ? form.getCheckBox(id).check() : form.getCheckBox(id).uncheck(); } catch(e){} };
@@ -536,10 +571,10 @@ async function exportToPDF() {
         }
 
         const noProjet = document.getElementById('global-no-projet').value.trim() || 'SANS-NUMERO';
-        const rawDate = document.getElementById('global-date').value || new Date().toISOString().split('T')[0];
+        const rawDate = document.getElementById('global-date').value || localToday();
         const techName = document.getElementById('sig-prep-nom')?.value || '';
         const techInitials = techName.split(' ').filter(n => n).map(n => n[0].toUpperCase()).join('') || 'TECH';
-        
+
         const fileName = `Rapport_Coulis_${rawDate}_${noProjet}_${techInitials}.pdf`;
         const pdfBytes = await finalPdf.save();
 
